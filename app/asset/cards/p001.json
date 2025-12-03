@@ -1,0 +1,22 @@
+{
+    "card_id": "p001",
+    "card_type": "Fighter",
+    "name": "PeaShooter",
+    "type": "MEGA_GROW",
+    "faction": "PLANT",
+    "description": "A basic plant that shoots peas at zombies.",
+    "labels": [
+        "PLANT",
+        "PEA"
+    ],
+    "art_path": "app/assets/cards/p001.png",
+    "pack": "BASIC",
+    "rarity": "COMMON",
+    "cost": 1,
+    "fighter_config": {
+        "strength": 1,
+        "health": 1,
+        "traits": {},
+        "abilities": []
+    }
+}

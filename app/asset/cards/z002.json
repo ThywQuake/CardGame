@@ -1,0 +1,37 @@
+{
+    "card_id": "z002",
+    "card_type": "Environment",
+    "name": "Sweet Trap",
+    "type": "HEARTY",
+    "faction": "ZOMBIE",
+    "description": "Before this lane's combat starts, plants here get 1 hurt.",
+    "labels": [
+        "ZOMBIE",
+        "ENVIRONMENT"
+    ],
+    "art_path": "app/assets/cards/z002.png",
+    "pack": "BASIC",
+    "rarity": "COMMON",
+    "cost": 1,
+    "environment_config": {
+        "abilities": [
+            {
+                "selector": false,
+                "trigger": "LANE_COMBAT_START",
+                "targets": {
+                    "faction": "PLANT",
+                    "subject": "FIGHTER",
+                    "range": "LANE",
+                    "selection": "ALL",
+                    "amount": 0
+                },
+                "effects": [
+                    {
+                        "event_type": "ATTACK",
+                        "magnitude": 1
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,40 @@
+{
+    "card_id": "p002",
+    "card_type": "Trick",
+    "name": "Fertilizer",
+    "type": "MEGA_GROW",
+    "faction": "PLANT",
+    "description": "Increases a plant's strength and health by 1.",
+    "labels": [
+        "PLANT",
+        "TRICK"
+    ],
+    "art_path": "app/assets/cards/fertilizer.png",
+    "pack": "BASIC",
+    "rarity": "COMMON",
+    "cost": 1,
+    "trick_config": {
+        "abilities": [
+            {
+                "selector": true,
+                "targets": {
+                    "faction": "PLANT",
+                    "subject": "FIGHTER",
+                    "range": "FIELD",
+                    "selection": "SELECT",
+                    "amount": 1
+                },
+                "effects": [
+                    {
+                        "event_type": "GROW_STRENGTH",
+                        "magnitude": 1
+                    },
+                    {
+                        "event_type": "GROW_HEALTH",
+                        "magnitude": 1
+                    }
+                ]
+            }
+        ]
+    }
+}

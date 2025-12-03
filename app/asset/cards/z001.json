@@ -1,0 +1,22 @@
+{
+    "card_id": "z001",
+    "card_type": "Fighter",
+    "name": "Normal Zombie",
+    "type": "SNEAKY",
+    "faction": "ZOMBIE",
+    "description": "A basic zombie that shambles towards plants.",
+    "labels": [
+        "ZOMBIE",
+        "PROFESSIONAL"
+    ],
+    "art_path": "app/assets/cards/z001.png",
+    "pack": "BASIC",
+    "rarity": "COMMON",
+    "cost": 1,
+    "fighter_config": {
+        "strength": 1,
+        "health": 1,
+        "traits": {},
+        "abilities": []
+    }
+}

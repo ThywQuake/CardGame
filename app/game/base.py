@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
+from random import randint
+from functools import total_ordering
 
 
 class Type(Enum):
@@ -11,7 +13,7 @@ class Type(Enum):
 
     GUARDIAN = "GUARDIAN"
     KABLOOM = "KABLOOM"
-    MEGAGROW = "MEGAGROW"
+    MEGA_GROW = "MEGA_GROW"
     SMARTY = "SMARTY"
     SOLAR = "SOLAR"
 
@@ -31,7 +33,7 @@ class Faction(Enum):
 
 
 @dataclass
-class Ability:
+class Trait:
     BULLSEYE: bool = False
     TEAM_UP: bool = False
     AMPHIBIOUS: bool = False
@@ -40,6 +42,7 @@ class Ability:
     UNTRICKABLE: bool = False
     DOUBLE_STRIKE: bool = False
     STRIKETHROUGH: bool = False
+    UNHURTABLE: bool = False
     FRENZY: bool = False
     DEADLY: bool = False
     TOMB: bool = False
@@ -119,20 +122,23 @@ class Pack(Enum):
 
 
 @dataclass
-class FighterConfig:
-    NAME: str
-    TYPE: Type
-    FACTION: Faction
-    DESCRIPTION: str
-    LABELS: list[Label]
-    ART_PATH: str
+class Config:
+    NAME: str = "Unnamed"
+    TYPE: Type = Type.BEASTY
+    FACTION: Faction = Faction.NEUTRAL
+    DESCRIPTION: str = "No description."
+    LABELS: list[Label] = None
+    ART_PATH: str = "path/to/art.png"
+    PACK: Pack = Pack.BASIC
+    RARITY: Rarity = Rarity.COMMON
 
-    COST: int
-    STRENGTH: int
-    HEALTH: int
-    ABILITIES: Ability
-    RARITY: Rarity
-    PACK: Pack
+
+@dataclass
+class FighterConfig(Config):
+    COST: int = 1
+    STRENGTH: int = 1
+    HEALTH: int = 1
+    TRAIT: Trait = Trait()
 
 
 @dataclass
@@ -157,6 +163,80 @@ class FighterState:
     IN_FIELD: bool = False
     IN_TOMB: bool = False
 
-    # Debuffs
+    ON_HEIGHT: bool = False
+    ON_WATER: bool = False
+    ON_PLAIN: bool = True
+    ON_ENV: bool = False
+
+    # buffs
     FROZEN: bool = False
     DOOMED: bool = False
+
+    def __init__(self, config: FighterConfig):
+        self.ID = randint(1e8, 1e9 - 1)
+        self.INITIAL_COST = self.CURRENT_COST = self.MAX_COST = config.COST
+        self.INITIAL_STRENGTH = self.CURRENT_STRENGTH = self.MAX_STRENGTH = (
+            config.STRENGTH
+        )
+        self.INITIAL_HEALTH = self.CURRENT_HEALTH = self.MAX_HEALTH = config.HEALTH
+
+
+@dataclass
+class CardConfig(Config):
+    COST: int = 1
+
+
+@dataclass
+class CardState:
+    ID: int
+    IN_DECK: bool = True
+    IN_HAND: bool = False
+    IN_GRAVEYARD: bool = False
+
+    def __init__(self):
+        self.ID = randint(1e8, 1e9 - 1)
+
+
+@dataclass
+class AbsolutePosition:
+    """
+    WHERE:
+    - 0: DECK
+    - 1: HAND
+    - 2: FIELD
+    - 3: GRAVEYARD
+
+    LANE:
+    - 1-5: field lane index
+    - 0: non-field (deck, hand, graveyard)
+
+    FACTION:
+    - 0: NEUTRAL
+    - 1: ZOMBIE
+    - 2: PLANT
+
+    SEAT:
+    - for ZOMBIE: 0
+    - for PLANT: 0(FRONT), 1(BACK)
+    - for others: 0
+    """
+
+    WHERE: int = 0
+    LANE: int = 0
+    FACTION: int = 0
+    SEAT: int = 0
+
+
+class GamePhase(Enum):
+    INITIAL_DRAW = "INITIAL_DRAW"
+    ZOMBIE_PHASE = "ZOMBIE_PHASE"
+    PLANT_PHASE = "PLANT_PHASE"
+    ZOMBIE_TRICK_PHASE = "ZOMBIE_TRICK_PHASE"
+    COMBAT_PHASE = "COMBAT_PHASE"
+    SUPRISE_PHASE = "SUPRISE_PHASE"
+
+
+@dataclass
+class GameState:
+    TURN: int = 0
+    PHASE: GamePhase = GamePhase.INITIAL_DRAW
