@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from random import randint
-from functools import total_ordering
 
 
 class Type(Enum):
@@ -138,7 +137,7 @@ class FighterConfig(Config):
     COST: int = 1
     STRENGTH: int = 1
     HEALTH: int = 1
-    TRAIT: Trait = Trait()
+    TRAIT: Trait = field(default_factory=Trait)
 
 
 @dataclass
@@ -240,3 +239,5 @@ class GamePhase(Enum):
 class GameState:
     TURN: int = 0
     PHASE: GamePhase = GamePhase.INITIAL_DRAW
+    END: bool = False
+    WINNER: Faction = Faction.NEUTRAL
