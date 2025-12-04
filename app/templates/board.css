@@ -1,0 +1,300 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background-color: #1a1a1a;
+    color: #fff;
+    font-family: "Segoe UI", sans-serif;
+}
+
+.grid-container {
+    display: grid;
+    height: 100vh;
+    width: 100vw;
+
+    grid-template-columns: 1fr 100px auto 100px 1fr;
+    grid-template-rows: 50px 1fr 2fr 30px 1fr 1fr 1fr;
+    grid-template-areas:
+                "header  header   header  header  header"
+                "rec1    hand1   ban1    hand2  deck"
+                "rec1    hand1   battle  hand2  deck"
+                "div     hand1   battle  hand2  deck"
+                "rec2    hand1   battle  hand2  deck"
+                "rec2    hand1   ban2    hand2  deck"
+                "rec2    hand1   ban2    hand2  ctrl";
+
+    gap: 5px;
+    padding: 4px;
+    transition: grid-template-columns 0.5s ease-in-out;
+}
+
+.box {
+    background-color: #2d2d2d;
+    border: 1px solid #444;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.area-header {
+    grid-area: header;
+    background-color: #333;
+    font-weight: bold;
+}
+
+.area-rec1 {
+    grid-area: rec1;
+    display: flex;
+    flex-direction: column-reverse;
+    
+    justify-content: flex-start;
+    padding: 10px;
+    overflow-y: auto;
+
+    mask-image: linear-gradient(to top, 
+        black 50%,        
+        transparent 100%  
+    );
+
+    -webkit-mask-image: linear-gradient(to top, 
+        black 50%, 
+        transparent 100%
+    );
+}
+
+.area-div {
+            grid-area: div;
+            background-color: #f39c12;
+            border: none;
+            height: 100%;
+        }
+
+.area-rec2 {
+    grid-area: rec2;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 10px;
+    overflow-y: auto;
+
+    mask-image: linear-gradient(to bottom, 
+        black 50%,         
+        transparent 100%   
+    );
+    -webkit-mask-image: linear-gradient(to bottom, 
+        black 50%, 
+        transparent 100%
+    );
+}
+
+.area-ban1 {
+            grid-area: ban1;
+            background-color: #3d085c;
+            display: grid;
+            grid-template-rows: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 60% 20%;
+            grid-template-areas: 
+                "energy name hero-icon"
+                "health name hero-icon"
+                "health name hero-icon";
+        }
+
+.energy {
+    grid-area: energy;
+    font-size: 2.5rem;
+    color: #f1c40f;
+}
+.health {
+    grid-area: health;
+    font-size: 2.5rem;
+    background-color: transparent;
+
+    position: relative;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.health-icon, .health-value {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+}
+.health-icon {
+    font-size: 5rem;
+    color: red;
+    z-index: 1;
+}
+.health-value {
+    font-size: 2rem;
+    color: #ecf0f1;
+    z-index: 2;
+}
+
+.name {
+    grid-area: name;
+    font-size: 1.5rem;
+    color: #ecf0f1;
+    display: flex;
+    justify-content: center;
+}
+.hero-icon {
+    grid-area: hero-icon;
+    font-size: 1rem;
+    background-color: #34495e;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.area-battle {
+            aspect-ratio: 5/4;
+            grid-area: battle;
+            background-color: #27ae60;
+            background-image: radial-gradient(#2ecc71 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+.battle-lane {
+            width: 19.5%;
+            height: 95%;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+}
+
+.seat {
+    width: 100%;
+    aspect-ratio: 4/3;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    margin: 5px 0;
+    display: flex;
+    justify-content: center;    
+
+}
+
+.seat-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 90%;
+    margin: 3px;
+}
+
+.area-ban2 {
+            grid-area: ban2;
+            background-color: #1a902d;
+            display: grid;
+            grid-template-rows: 1fr 1fr 1fr 2fr;
+            grid-template-columns: 1fr 60% 20%;
+            grid-template-areas: 
+                "hero-icon name energy"
+                "hero-icon name health"
+                "hero-icon name health"
+                "tbc    tbc  tbc";
+        }
+
+.area-deck {
+            grid-area: deck;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 10px;
+            background-color: #34495e;
+            overflow-y: auto;
+        }
+
+.area-ctrl {
+            grid-area: ctrl;
+            background-color: transparent;
+            border: none;
+        }
+
+.circle-btn {
+            width: 100%;
+            height: 100%;
+            max-width: 120px;
+            max-height: 120px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: transform 0.1s;
+            font-weight: bold;
+        }
+        .circle-btn:active {
+            transform: scale(0.95);
+        }
+
+.record-item, .deck-item {
+            width: 100%;
+            height: 40px;
+            background-color: rgba(203, 229, 54, 0.1);
+            margin-bottom: 5px;
+            border-radius: 2px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            font-size: 0.8rem;
+        }
+
+.area-hand1 {
+            grid-area: hand1;
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+            gap: 8px
+}
+.area-hand2 {
+            grid-area: hand2;
+            display: flex;
+            flex-direction: column-reverse;
+            justify-content: end;
+            gap: 8px;
+}
+.card {
+            width: 100px;
+            height: 80px;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+            margin: 0 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #ffffffff;
+        }
+
+.card.self-card{
+    background-color: #5be16bff;
+}:active{
+            cursor: grabbing; 
+            z-index: 1000; 
+            transition: none;
+        }
+
+.card.opponent-card{
+    background-color: #5c0671ff;
+}

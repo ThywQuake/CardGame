@@ -10,17 +10,22 @@ class GameEndingException(Exception):
         super().__init__(f"Game ended! Winner: {winner}")
 
 
+class SurprisePhaseException(Exception):
+    def __init__(self, player: "Player"):
+        super().__init__(f"Surprise Phase: {player.name}")
+        self.player = player
+
+
 class Event(ABC):
     def __init__(self, **kwargs):
         self.source = kwargs.get("source", None)
         self.canceled = False
 
     @abstractmethod
-    def execute(self, **kwargs):
+    def execute(self, **kwargs) -> "Event" | list["Event"] | None:
         pass
 
-    @abstractmethod
-    def undo(self, **kwargs):
+    def undo(self, **kwargs) -> None:
         pass
 
 
@@ -28,12 +33,10 @@ class Listener(ABC):
     def __init__(self, **kwargs):
         self.source = kwargs.get("source", None)
         self.interested_events: list[type[Event]] = kwargs.get("interested_events", [])
-        self.absolute_position: AbsolutePosition = kwargs.get(
-            "absolute_position", AbsolutePosition()
-        )
+        self.absolute_position: Position = kwargs.get("absolute_position", Position())
 
     @abstractmethod
-    def react(self, event: Event, **kwargs):
+    def react(self, event: Event, **kwargs) -> Event | list[Event] | None:
         pass
 
 
@@ -59,6 +62,8 @@ class EventManager:
             self.event_queue.put(event)
         while not self.event_queue.empty():
             current_event = self.event_queue.get()
+            if current_event is None:
+                continue
             sequence_event = current_event.execute()
             self.check_ending()
 
@@ -106,8 +111,49 @@ class EnergyGainEvent(Event):
     def execute(self, **kwargs):
         self.player.energy = self.amount
 
-    def undo(self, **kwargs):
-        pass
+
+class CardPlayEvent(Event):
+    def __init__(self, player: "Player", card: "Card", **kwargs):
+        super().__init__(**kwargs)
+        self.player = player
+        self.card = card
+
+    def execute(self, **kwargs):
+        self.player.hand.cards.remove(self.card)
+        self.player.energy -= self.card.cost
+
+
+class EnterFieldEvent(Event):
+    def __init__(
+        self, fighter: "Fighter", field: "Field", position: Position, **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.fighter = fighter
+        self.field = field
+        self.position = position
+
+    def execute(self, **kwargs):
+        self.field.add_fighter(self.fighter, self.position)
+        return self.fighter.enter_field()
+
+
+class SetEnvEvent(Event):
+    def __init__(
+        self, environment: "Environment", field: "Field", position: Position, **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.environment = environment
+        self.field = field
+        self.position = position
+
+    def execute(self, **kwargs):
+        former_env = self.field.environments[self.position.LANE.index()]
+        former_env = None if former_env.is_env else former_env
+        self.field.environments[self.position.LANE.index()] = self.environment
+        return [
+            self.environment.enter_field(),
+            former_env.leave_field() if former_env is not None else None,
+        ]
 
 
 "--------------------------------------------------------------------------------------"
@@ -115,15 +161,15 @@ class EnergyGainEvent(Event):
 
 class Fighter(ABC):
     def __init__(self, **kwargs):
-        self.config = kwargs.get("config", FighterConfig())
-        self.state = FighterState(self.config)
+        self.config: FighterConfig = kwargs.get("config", FighterConfig())
+        self.state: FighterState = FighterState(self.config)
 
     @abstractmethod
-    def enter_field(self, **kwargs):
+    def enter_field(self, **kwargs) -> Event | list[Event] | None:
         pass
 
     @abstractmethod
-    def leave_field(self, **kwargs):
+    def leave_field(self, **kwargs) -> Event | list[Event] | None:
         pass
 
 
@@ -143,58 +189,146 @@ class Environment(ABC):
         self.name = kwargs.get("name", "Environment")
         self.description = kwargs.get("description", "")
         self.art_path = kwargs.get("art_path", "")
+        self.is_env = True
 
     @abstractmethod
-    def ability(self, **kwargs):
+    def enter_field(self, **kwargs):
+        pass
+
+    def leave_field(self, **kwargs):
         pass
 
 
 class HeightEnv(Environment):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.is_env = False
 
-    def ability(self):
+    def enter_field(self, **kwargs):
+        pass
+
+
+class LaneEnv(Environment):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.is_env = False
+
+    def enter_field(self, **kwargs):
         pass
 
 
 class WaterEnv(Environment):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.is_env = False
 
-    def ability(self):
+    def enter_field(self, **kwargs):
         pass
 
 
 class Field:
-    def __init__(self, game: "Game"):  # type: ignore quoted annotation
+    def __init__(self, **kwargs):  # type: ignore quoted annotation
         self.zombies: list[Fighter | None] = [None] * 5
         self.plants: list[list[Fighter | None]] = [
             [None, None] for _ in range(5)
         ]  # 2 rows for plants
-        self.environments: list[Environment | None] = [
+        self.default_environments: list[Environment] = [
             HeightEnv(),
-            None,
-            None,
-            None,
+            LaneEnv(),
+            LaneEnv(),
+            LaneEnv(),
             WaterEnv(),
         ]
-        self.game: "Game" = game  # type: ignore quoted annotation
+        self.environments = self.default_environments.copy()
+        # self.game: "Game" = game  # type: ignore quoted annotation
 
-    def add_fighter(self, fighter: Fighter, faction: Faction, lane: int, seat: int = 0):
-        if not (0 <= lane < 5):
-            return False
+    def __getitem__(
+        self, position: Position
+    ) -> Fighter | list[Fighter | None] | Environment | None:
+        if position.ZONE is not PZone.FIELD:
+            return None
+        if position.LANE not in [PLane.OTHER, PLane.WHOLE_FIELD]:
+            if position.FACTION == PFaction.ZOMBIE:
+                return self.zombies[position.LANE.index()]
+            elif position.FACTION == PFaction.PLANT:
+                if position.SEAT in [PSeat.PLANT_FRONT_SEAT, PSeat.PLANT_BACK_SEAT]:
+                    return self.plants[position.LANE.index()][position.SEAT.index()]
+            elif position.FACTION == PFaction.ENVIRONMENT:
+                env = self.environments[position.LANE.index()]
+                return env if env.is_env else None
+            elif position.FACTION == PFaction.WHOLE_LANE:
+                return [self.zombies[position.LANE.index()]] + self.plants[
+                    position.LANE.index()
+                ]
 
-        if faction == Faction.ZOMBIE:
-            if self.zombies[lane] is None:
-                self.zombies[lane] = fighter
-                fighter.enter_field()
-                return True
-        elif faction == Faction.PLANT:
-            if self.plants[lane][seat] is None:
-                self.plants[lane][seat] = fighter
-                fighter.enter_field()
-                return True
-        return False
+    def __setitem__(self, position: Position, object: Fighter | Environment | None):
+        if position.ZONE is not PZone.FIELD:
+            return
+        if position.LANE not in [PLane.OTHER, PLane.WHOLE_FIELD]:
+            if (
+                position.FACTION == PFaction.ZOMBIE
+                and isinstance(object, Fighter)
+                and object.config.FACTION == Faction.ZOMBIE
+                and (
+                    (self[position] is None)
+                    or (object is None)
+                    or (
+                        self[position] is not None and position.FUSION == PFusion.FUSION
+                    )
+                )
+            ):
+                self.zombies[position.LANE.index()] = object
+            elif (
+                position.FACTION == PFaction.PLANT
+                and isinstance(object, Fighter)
+                and object.config.FACTION == Faction.PLANT
+                and position.SEAT in [PSeat.PLANT_FRONT_SEAT, PSeat.PLANT_BACK_SEAT]
+            ):
+                if self[position] is None or object is None:
+                    self.plants[position.LANE.index()][position.SEAT.index()] = object
+                elif self[position] is not None:
+                    if position.FUSION == PFusion.FUSION:
+                        self.plants[position.LANE.index()][
+                            position.SEAT.index()
+                        ] = object
+                    elif (
+                        position.FUSION == PFusion.NON_FUSION
+                        and object.config.TRAIT.TEAM_UP
+                    ):
+                        temp = self[position]
+                        self.plants[position.LANE.index()][
+                            position.SEAT.index()
+                        ] = object
+                        # another plant pushed to another seat
+                        self.plants[position.LANE.index()][
+                            position.SEAT.another().index()
+                        ] = temp
+            elif position.FACTION == PFaction.ENVIRONMENT and isinstance(
+                object, Environment
+            ):
+                self.environments[position.LANE.index()] = object
+
+    def add_fighter(self, fighter: Fighter, position: Position):
+        if self[position] is None:
+            self[position] = fighter
+        elif position.FUSION == PFusion.NON_FUSION and fighter.config.TRAIT.TEAM_UP:
+            self[position] = fighter
+        elif position.FUSION == PFusion.FUSION:
+            ...
+            # TODO: fusion logic is far more complex, extend later
+
+    def play_card(
+        self, player: "Player", card: "Card", target_position: Position
+    ) -> Event:
+        # if isinstance(card, FighterCard):
+        #     fighter = card.fighter
+        #     return [
+        #         CardPlayEvent(player=player, card=card),
+        #         EnterFieldEvent(fighter=fighter, field=self, position=target_position),
+        #     ]
+        # elif isinstance(card, TrickCard):
+        #     ...
+        return card.play(player=player, field=self, target_position=target_position)
 
 
 class Card(ABC):
@@ -202,9 +336,13 @@ class Card(ABC):
         self.config = kwargs.get("config", CardConfig())
         self.cost = self.config.COST
         self.name = self.config.NAME
+        self.playable = False
+        self.valid_targets: list[Position] = []
 
     @abstractmethod
-    def play(self, **kwargs):
+    def play(
+        self, player: "Player", field: "Field", target_position: Position, **kwargs
+    ):
         pass
 
 
@@ -213,16 +351,31 @@ class FighterCard(Card):
         super().__init__(**kwargs)
         self.fighter: Fighter = kwargs.get("fighter", TokenFighter())
 
-    def play(self, **kwargs):
-        pass
+    def play(
+        self, player: "Player", field: "Field", target_position: Position, **kwargs
+    ):
+        return [
+            CardPlayEvent(player=player, card=self),
+            EnterFieldEvent(
+                fighter=self.fighter, field=field, position=target_position
+            ),
+        ]
 
 
 class TrickCard(Card):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.trick_effect: Event = kwargs.get("trick_effect", Event())
 
-    def play(self, **kwargs):
-        pass
+    def play(
+        self, player: "Player", field: "Field", target_position: Position, **kwargs
+    ):
+        return [
+            CardPlayEvent(player=player, card=self),
+            self.trick_effect(
+                player=player, field=field, target_position=target_position
+            ),
+        ]
 
 
 class EnvironmentCard(Card):
@@ -230,8 +383,17 @@ class EnvironmentCard(Card):
         super().__init__(**kwargs)
         self.environment: Environment = kwargs.get("environment", Environment())
 
-    def play(self, **kwargs):
-        pass
+    def play(
+        self, player: "Player", field: "Field", target_position: Position, **kwargs
+    ):
+        return [
+            CardPlayEvent(player=player, card=self),
+            SetEnvEvent(
+                environment=self.environment,
+                field=field,
+                position=target_position,
+            ),
+        ]
 
 
 class CardSlot(ABC):
@@ -305,6 +467,8 @@ class Player:
         self.graveyard: Graveyard = kwargs.get("graveyard", Graveyard())
         self.super_block: SuperBlock = kwargs.get("super_block", SuperBlock())
         self.energy: int = kwargs.get("energy", 0)
+
+        self.game: "Game" = kwargs.get("game", None)  # type: ignore quoted annotation
 
     def initial_draw(self) -> Event:
         cards = [self.deck.draw()] * 4

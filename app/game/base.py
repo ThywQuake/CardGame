@@ -196,34 +196,109 @@ class CardState:
         self.ID = randint(1e8, 1e9 - 1)
 
 
+class PZone(Enum):
+    DECK = 0
+    HAND = 1
+    FIELD = 2
+    GRAVEYARD = 3
+
+
+class PLane(Enum):
+    WHOLE_FIELD = 0
+    LANE_1 = 1
+    LANE_2 = 2
+    LANE_3 = 3
+    LANE_4 = 4
+    LANE_5 = 5
+    OTHER = 6
+
+    def index(self):
+        if self in [
+            PLane.LANE_1,
+            PLane.LANE_2,
+            PLane.LANE_3,
+            PLane.LANE_4,
+            PLane.LANE_5,
+        ]:
+            return self.value - 1
+        else:
+            return -1
+
+
+class PFaction(Enum):
+    WHOLE_LANE = 0
+    ENVIRONMENT = 1
+    ZOMBIE = 2
+    PLANT = 3
+    OTHER = 4
+
+
+class PSeat(Enum):
+    ZOMBIE_SEAT = 0
+    PLANT_FRONT_SEAT = 1
+    PLANT_BACK_SEAT = 2
+    OTHER_SEAT = 3
+
+    def index(self):
+        if self in [PSeat.PLANT_FRONT_SEAT, PSeat.PLANT_BACK_SEAT]:
+            return self.value - 2
+        elif self == PSeat.ZOMBIE_SEAT:
+            return 0
+        else:
+            return -1
+
+    def another(self):
+        if self == PSeat.PLANT_FRONT_SEAT:
+            return PSeat.PLANT_BACK_SEAT
+        elif self == PSeat.PLANT_BACK_SEAT:
+            return PSeat.PLANT_FRONT_SEAT
+        else:
+            return PSeat.OTHER_SEAT
+
+
+class PFusion(Enum):
+    NON_FUSION = 0
+    FUSION = 1
+    OTHER = 2
+
+
 @dataclass
-class AbsolutePosition:
+class Position:
     """
-    WHERE:
+    ZONE:
     - 0: DECK
     - 1: HAND
     - 2: FIELD
     - 3: GRAVEYARD
 
     LANE:
+    - 0: whole-field
     - 1-5: field lane index
-    - 0: non-field (deck, hand, graveyard)
+    - 6: other
 
     FACTION:
-    - 0: NEUTRAL
-    - 1: ZOMBIE
-    - 2: PLANT
+    - 0: whole-lane(for tricks)
+    - 1: environment
+    - 2: zombie faction
+    - 3: plant faction
+    - 4: other
 
     SEAT:
     - for ZOMBIE: 0
     - for PLANT: 0(FRONT), 1(BACK)
-    - for others: 0
+    - for others: 2
+
+    FUSION:
+    - 0: non-fusion
+    - 1: fusion
+    - 2: other
     """
 
-    WHERE: int = 0
-    LANE: int = 0
-    FACTION: int = 0
-    SEAT: int = 0
+    ZONE: PZone = PZone(0)
+    LANE: PLane = PLane(0)
+    FACTION: PFaction = PFaction(0)
+    SEAT: PSeat = PSeat(0)
+    FUSION: PFusion = PFusion(0)
 
 
 class GamePhase(Enum):

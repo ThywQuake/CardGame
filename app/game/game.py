@@ -11,7 +11,7 @@ class PlayCardAction(Action):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.card: Card = kwargs.get("card", None)
-        self.target_position: tuple[int, int] = kwargs.get("target_position", (0, 0))
+        self.target_position: Position = kwargs.get("target_position", Position())
 
 
 class EndPhaseAction(Action):
@@ -50,11 +50,9 @@ class Game:
         self._notify(self.zombie_player.get_energy(1))
         self._notify(self.plant_player.get_energy(1))
 
-    def _render(self):
-        pass
-
-    def _input(self, player: Player) -> Action:
-        pass
+    def _listen(self, action: Action):
+        if isinstance(action, PlayCardAction):
+            self._notify(self.field.play_card(action.card, action.target_position))
 
     def _zombie_phase(self):
         pass

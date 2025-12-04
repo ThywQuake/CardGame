@@ -1,285 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Card Game Board</title>
-    <style>
-        /* --- 全局和布局 --- */
-        body { margin: 0; padding: 0; font-family: sans-serif; background-color: #2c3e50; color: white; }
-
-        .container {
-            display: grid;
-            /* 定义 5 列结构：150px (左栏) | 1fr (战场宽) x3 | 150px (右栏) */
-            grid-template-columns: 150px 1fr 1fr 1fr 150px; 
-            /* 定义 3 行结构：顶部 (auto) | 中间 (1fr) | 底部 (auto) */
-            grid-template-rows: auto 1fr auto; 
-            min-height: 100vh;
-            gap: 10px;
-            padding: 10px;
-        }
-
-        /* 顶部/底部全宽 (跨越所有列: 1 / -1) */
-        .opponent-area { 
-            grid-column: 1 / -1; 
-            grid-row: 1;
-            background-color: #34495e; padding: 10px; border-radius: 8px; 
-        }
-        .me-player-area { 
-            grid-column: 1 / -1; 
-            grid-row: 3;
-            background-color: #34495e; padding: 10px; border-radius: 8px; 
-        }
-
-        /* 中间行布局 */
-        .deck-area { 
-            grid-column: 1; 
-            grid-row: 2;
-            background-color: #273746; 
-            padding: 10px 5px; 
-            border-radius: 8px;
-            display: flex; 
-            flex-direction: column;
-        }
-        .graveyard-area { 
-            grid-column: 5; 
-            grid-row: 2;
-            background-color: #273746; 
-            padding: 10px 5px; 
-            border-radius: 8px;
-            display: flex; 
-            flex-direction: column;
-        }
-        .battle-field { 
-            /* 战场跨越中间 3 列 (Column 2 到 Column 5 的起始线) */
-            grid-column: 2 / 5; 
-            grid-row: 2;
-            display: flex; justify-content: center; align-items: center; 
-        }
-
-
-        /* --- 战场布局 (Lanes) --- */
-        .game-board { 
-            display: flex; 
-            flex-direction: row; 
-            gap: 10px; 
-            padding: 5px; 
-        }
-        
-        .lane { 
-            display: flex; 
-            flex-direction: column; 
-            background-color: #3f5166; 
-            padding: 5px; 
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .lane-info { 
-            text-align: center; 
-            font-weight: bold;
-            padding: 5px 0;
-            background-color: #1abc9c;
-            border-radius: 4px;
-            margin-bottom: 5px;
-        }
-
-        .divider-line {
-            height: 10px; 
-            width: 100%;
-            background-color: #f39c12; 
-            margin: 5px 0;
-            border-radius: 2px;
-        }
-
-        /* 通用卡槽样式 */
-        .slot {
-            width: 100px; 
-            height: 100px;
-            border: 2px dashed #7f8c8d;
-            margin-bottom: 5px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            position: relative;
-        }
-        .env-slot { background-color: #2980b9; opacity: 0.8; border-color: transparent; }
-        .zombie-slot { background-color: #8e44ad; border-color: #f1c40f; }
-        .plant-slot-front { background-color: #2ecc71; border-color: #27ae60; }
-        .plant-slot-back { background-color: #1abc9c; border-color: #16a085; }
-        .card-name { font-size: 12px; font-weight: bold; }
-        .stats { font-size: 10px; margin-top: 5px; }
-        .badge { padding: 2px 5px; border-radius: 4px; background: rgba(0,0,0,0.5); }
-
-
-        /* --- 玩家信息和手牌 --- */
-        .player-info { display: flex; justify-content: space-between; align-items: center; }
-        .resource { font-size: 2em; font-weight: bold; }
-        
-        /* Deck / Graveyard 垂直滚动条 */
-        .scrollable-list {
-            flex-grow: 1; /* 占据父容器的剩余空间 */
-            overflow-y: auto; /* 垂直滚动 */
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            padding: 5px 0;
-            border-top: 1px solid #5d6d7e;
-        }
-
-        /* Hand List 水平滚动条 */
-        .hand-list { 
-            display: flex; 
-            gap: 10px; 
-            margin-top: 10px; 
-            overflow-x: auto; /* 水平滚动 */
-            padding-bottom: 10px;
-        }
-        .hand-card {
-            width: 90px;
-            min-height: 120px;
-            border: 2px solid #bdc3c7;
-            background-color: #95a5a6;
-            padding: 5px;
-            border-radius: 8px;
-            flex-shrink: 0; 
-        }
-
-        /* 侧边栏卡牌 */
-        .side-card {
-            width: auto; 
-            min-height: 40px;
-            border: 1px solid #7f8c8d;
-            background-color: #5d6d7e;
-            text-align: center;
-            padding: 5px;
-            border-radius: 5px;
-        }
-
-        /* 可拖动样式 */
-        [draggable="true"] { cursor: grab; transition: transform 0.1s; }
-        [draggable="true"]:active { cursor: grabbing; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Board Layout</title>
+    <link rel="stylesheet" href="./board.css">
+    <script src="./board.js" defer></script>
 </head>
+
+
 <body>
-    {% set me_player = game.plant_player %}
-    {% set opponent_player = game.zombie_player %}
 
-    <div class="container">
-        
-        <div class="opponent-area">
-            <div class="player-info">
-                <h2>{{ opponent_player.name }} (Zombie Hero)</h2>
-                <div>
-                    <span class="resource">🧠 {{ opponent_player.current_resource }}/{{ opponent_player.max_resource }}</span>
-                    | Health: <span class="resource" style="color: #e74c3c;">{{ opponent_player.hero.health }}</span>
+    <div class="grid-container">
+        <div class="box area-header">TOP BAR (Header)</div>
+
+        <div class="box area-rec1">
+            <div class="record-item">Log Entry 001</div>
+            <div class="record-item">Log Entry 002</div>
+            <div class="record-item">Log Entry 003</div>
+            <div class="record-item">Log Entry 004</div>
+            <div class="record-item">Log Entry 005</div>
+            <div class="record-item">Log Entry 003</div>
+            <div class="record-item">Log Entry 001</div>
+            <div class="record-item">Log Entry 002</div>
+            <div class="record-item">Log Entry 003</div>
+            <div class="record-item">Log Entry 001</div>
+            <div class="record-item">Log Entry 002</div>
+            <div class="record-item">Log Entry 003</div>
+        </div>
+
+        <div class="box area-div">
+            <h4>History Records</h4>
+        </div>
+
+        <div class="box area-rec2">
+            <div class="record-item">History A</div>
+            <div class="record-item">History B</div>
+            <div class="record-item">History C</div>
+            <div class="record-item">History D</div>
+            <div class="record-item">History A</div>
+            <div class="record-item">History B</div>
+            <div class="record-item">History C</div>
+            <div class="record-item">History D</div>
+            <div class="record-item">History A</div>
+            <div class="record-item">History B</div>
+            <div class="record-item">History C</div>
+            <div class="record-item">History D</div>
+            <div class="record-item">History A</div>
+            <div class="record-item">History B</div>
+            <div class="record-item">History C</div>
+            <div class="record-item">History D</div>
+        </div>
+
+        <div class="box area-hand1">
+            <div class="card opponent-card">Player 1 Card 1</div>
+            <div class="card opponent-card">Player 1 Card 2</div>
+            <div class="card opponent-card">Player 1 Card 3</div>
+            <div class="card opponent-card">Player 1 Card 4</div>
+            <div class="card opponent-card">Player 1 Card 5</div>
+        </div>
+
+        <div class="box area-ban1">
+            <div class="energy">🧠 5</div>
+            <div class="health">
+                <span class="health-icon">❤️</span>
+                <span class="health-value">20</span>
+            </div>
+            <div class="name">Player Name</div>
+            <div class="hero-icon">HERO</div>
+        </div>
+
+        <div class="box area-battle">
+            <div class="battle-lane">
+                <div class="seat-group">
+                    <div class="seat"></div>
+                </div>
+                Battle Lane 1
+                <div class="seat-group">
+                    <div class="seat"></div>
+                    <div class="seat"></div>
                 </div>
             </div>
-            <p>Phase: <span style="color: #3498db; font-weight: bold;">{{ game.game_state.PHASE.value }}</span> | Turn: {{ game.game_state.TURN }}</p>
-        </div>
-
-        <div class="deck-area">
-            <h3>Deck ({{ me_player.deck.cards | length }})</h3>
-            <div class="scrollable-list">
-                {% for card in me_player.deck.cards %}
-                    <div class="side-card" draggable="true">
-                        <div class="card-name">{{ card.name }} ({{ card.cost }})</div>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="graveyard-area">
-            <h3>Graveyard ({{ me_player.graveyard.cards | length }})</h3>
-            <div class="scrollable-list">
-                {% for card in me_player.graveyard.cards %}
-                    <div class="side-card" draggable="true">
-                        <div class="card-name">{{ card.name }}</div>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="battle-field">
-            <div class="game-board">
-                {% for i in range(5) %}
-                <div class="lane">
-                    <div class="lane-info">Lane {{ i }}</div>
-
-                    <div class="slot env-slot">
-                        {% if game.field.environments[i] %}
-                            <span class="card-name">{{ game.field.environments[i].name }}</span>
-                        {% else %}
-                            <span style="color: #ccc;">Environment</span>
-                        {% endif %}
-                    </div>
-
-                    <div class="slot zombie-slot">
-                        {% set zombie = game.field.zombies[i] %}
-                        {% if zombie %}
-                            <div class="card-name">{{ zombie.config.NAME }}</div> 
-                            <div class="stats">
-                                <span class="badge">Atk: {{ zombie.state.CURRENT_STRENGTH }}</span>
-                                <span class="badge">Hp: {{ zombie.state.CURRENT_HEALTH }}</span>
-                            </div>
-                        {% else %}
-                            ZOMBIE
-                        {% endif %}
-                    </div>
-                    
-                    <div class="divider-line"></div> 
-
-                    <div class="slot plant-slot-front" draggable="true">
-                        {% set plant_front = game.field.plants[i][0] %}
-                        {% if plant_front %}
-                            <div class="card-name">{{ plant_front.config.NAME }}</div>
-                            <div class="stats">
-                                <span class="badge">Atk: {{ plant_front.state.CURRENT_STRENGTH }}</span>
-                                <span class="badge">Hp: {{ plant_front.state.CURRENT_HEALTH }}</span>
-                            </div>
-                        {% else %}
-                            PLANT (Front)
-                        {% endif %}
-                    </div>
-
-                    <div class="slot plant-slot-back" draggable="true">
-                        {% set plant_back = game.field.plants[i][1] %}
-                        {% if plant_back %}
-                            <div class="card-name">{{ plant_back.config.NAME }}</div>
-                            <div class="stats">
-                                <span class="badge">Atk: {{ plant_back.state.CURRENT_STRENGTH }}</span>
-                                <span class="badge">Hp: {{ plant_back.state.CURRENT_HEALTH }}</span>
-                            </div>
-                        {% else %}
-                            PLANT (Back)
-                        {% endif %}
-                    </div>
+            <div class="battle-lane">
+                <div class="seat-group">
+                    <div class="seat"></div>
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="me-player-area">
-            <div class="player-info">
-                <h2>{{ me_player.name }} (Plant Hero)</h2>
-                <div>
-                    <span class="resource" style="color: #f1c40f;">☀️ {{ me_player.current_resource }}/{{ me_player.max_resource }}</span>
-                    | Health: <span class="resource" style="color: #e74c3c;">{{ me_player.hero.health }}</span>
+                Battle Lane 2
+                <div class="seat-group">
+                    <div class="seat"></div>
+                    <div class="seat"></div>
                 </div>
             </div>
-            
-            <h3>Hand ({{ me_player.hand.cards | length }})</h3>
-            <div class="hand-list">
-                {% for card in me_player.hand.cards %}
-                    <div class="hand-card" draggable="true">
-                        <div class="hand-cost">Cost: {{ card.cost }}</div>
-                        <div class="card-name">{{ card.name }}</div>
-                        <p style="font-size: 10px;">{{ card.config.FACTION.value }}</p>
-                    </div>
-                {% endfor %}
+            <div class="battle-lane">
+                <div class="seat-group">
+                    <div class="seat"></div>
+                </div>
+                Battle Lane 3
+                <div class="seat-group">
+                    <div class="seat"></div>
+                    <div class="seat"></div>
+                </div>
             </div>
+            <div class="battle-lane">
+                <div class="seat-group">
+                    <div class="seat"></div>
+                </div>
+                Battle Lane 4
+                <div class="seat-group">
+                    <div class="seat"></div>
+                    <div class="seat"></div>
+                </div>
+            </div>
+            <div class="battle-lane">
+                <div class="seat-group">
+                    <div class="seat"></div>
+                </div>
+                Battle Lane 5
+                <div class="seat-group">
+                    <div class="seat"></div>
+                    <div class="seat"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="box area-ban2">
+            <div class="energy">☀️ 5</div>
+            <div class="health">
+                <span class="health-icon">❤️</span>
+                <span class="health-value">20</span>
+            </div>
+            <div class="name">Player Name</div>
+            <div class="hero-icon">HERO</div>
+        </div>
+
+        <div class="box area-hand2">
+            <div class="card self-card">Player 2 Card 1</div>
+            <div class="card self-card">Player 2 Card 2</div>
+            <div class="card self-card">Player 2 Card 3</div>
+            <div class="card self-card">Player 2 Card 4</div>
+            <div class="card self-card">Player 2 Card 5</div>
+        </div>
+
+        <div class="box area-deck">
+            <div class="deck-item">Card Item 1</div>
+            <div class="deck-item">Card Item 2</div>
+            <div class="deck-item">Card Item 3</div>
+            <div class="deck-item">Card Item 4</div>
+            <div class="deck-item">Card Item 5</div>
+        </div>
+
+        <div class="box area-ctrl">
+            <div class="circle-btn">GO</div>
         </div>
     </div>
+
 </body>
+
 </html>
