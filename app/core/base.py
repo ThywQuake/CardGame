@@ -5,7 +5,7 @@ from random import randint
 
 class Type(Enum):
     TOKEN = "TOKEN"
-    
+
     BEASTY = "BEASTY"
     BRAINY = "BRAINY"
     CRAZY = "CRAZY"
@@ -121,12 +121,16 @@ class Pack(Enum):
     COLOSSAL = "COLOSSAL"
     TRIASSIC = "TRIASSIC"
 
+
 class Lifetime(Enum):
     PERMANENT = "PERMANENT"
-    ON_HAND = "ON_HAND"
-    ON_FIELD = "ON_FIELD"
-    
+    IN_DECK = "IN_DECK"
+    IN_HAND = "IN_HAND"
+    IN_FIELD = "IN_FIELD"
+
     ONCE = "ONCE"
+
+
 @dataclass
 class Config:
     NAME: str = "Unnamed"
@@ -239,6 +243,16 @@ class PFaction(Enum):
     PLANT = 3
     OTHER = 4
 
+    @staticmethod
+    def map(faction: Faction):
+        match faction:
+            case Faction.ZOMBIE:
+                return PFaction.ZOMBIE
+            case Faction.PLANT:
+                return PFaction.PLANT
+            case _:
+                return PFaction.OTHER
+
 
 class PSeat(Enum):
     ZOMBIE_SEAT = 0
@@ -302,11 +316,11 @@ class Position:
     """
 
     ZONE: PZone = PZone(0)
-    LANE: PLane = PLane(0)
+    LANE: PLane = PLane(6)
     FACTION: PFaction = PFaction(0)
-    SEAT: PSeat = PSeat(0)
-    FUSION: PFusion = PFusion(0)
-    
+    SEAT: PSeat = PSeat(2)
+    FUSION: PFusion = PFusion(2)
+
     def __eq__(self, value: object) -> bool:
         return (
             isinstance(value, Position)
@@ -316,13 +330,22 @@ class Position:
             and self.SEAT == value.SEAT
             and self.FUSION == value.FUSION
         )
-    
+
     def __lt__(self, value: object) -> bool:
         if not isinstance(value, Position):
             return NotImplemented
         return (
-            (self.ZONE.value, self.LANE.value, self.FACTION.value, self.SEAT.value, self.FUSION.value)
-            < (value.ZONE.value, value.LANE.value, value.FACTION.value, value.SEAT.value, value.FUSION.value)
+            self.ZONE.value,
+            self.LANE.value,
+            self.FACTION.value,
+            self.SEAT.value,
+            self.FUSION.value,
+        ) < (
+            value.ZONE.value,
+            value.LANE.value,
+            value.FACTION.value,
+            value.SEAT.value,
+            value.FUSION.value,
         )
 
 

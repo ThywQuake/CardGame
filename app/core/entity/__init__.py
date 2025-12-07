@@ -1,10 +1,12 @@
-from .card import Card, FighterCard, TrickCard, EnvCard
+from .card import Card, Fighter, Trick, Environment
 from .player import Player
+from .field import Field
 
 __all__ = [
     "Card",
-    "FighterCard",
-    "TrickCard",
-    "EnvCard",
+    "Fighter",
+    "Trick",
+    "Environment",
     "Player",
+    "Field",
 ]

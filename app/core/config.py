@@ -22,7 +22,7 @@ class CardConfig(ABC):
 
 
 @dataclass
-class FighterCardConfig(CardConfig):
+class FighterConfig(CardConfig):
     COST: int = 0
     STRENGTH: int = 0
     HEALTH: int = 0
@@ -41,11 +41,12 @@ class FighterCardConfig(CardConfig):
         self.PACK = Pack(kwargs.get("pack", self.PACK.value))
         self.TYPE = Type(kwargs.get("type", self.TYPE.value))
 
+
 @dataclass
-class TrickCardConfig(CardConfig):
+class TrickConfig(CardConfig):
     pass
 
 
 @dataclass
-class EnvCardConfig(CardConfig):
+class EnvironmentConfig(CardConfig):
     pass

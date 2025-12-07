@@ -1,28 +1,98 @@
 from abc import ABC, abstractmethod
-from app.core.config import FighterCardConfig, EnvCardConfig, TrickCardConfig
+from uuid import uuid4
+from app.core.config import CardConfig
+from typing import List, TYPE_CHECKING
+from app.core.event.listener import Listener
+
+if TYPE_CHECKING:
+    from app.core.entity.ability import Ability
+    from app.core.base import Position
+
 
 class Card(ABC):
     def __init__(self, **kwargs):
-        pass
-    
+        self.config: CardConfig = kwargs.get("config", CardConfig())
+
+    def on_board(self, **kwargs):
+        """
+        When the card is ready for the battlefield, do some setup here.
+        Otherwise, card is for info storage only.
+        """
+        from app.core.engine.game import Game
+        from app.core.base import Position, PFaction
+
+        self.game_id: int = int(uuid4())
+        self.game: Game = kwargs.get("game", Game())
+        self.position: Position = kwargs.get("position", Position())
+        self.position.FACTION = PFaction.map(self.config.FACTION)
+        self.in_deck_listeners: List[Listener] = kwargs.get("in_deck_listeners", [])
+        self.in_hand_listeners: List[Listener] = kwargs.get("in_hand_listeners", [])
+        self.from_play_listeners: List[Listener] = kwargs.get("from_play_listeners", [])
+        self.in_deck: bool = True
+        self.in_hand: bool = False
+        self.in_field: bool = False
+        self.in_graveyard: bool = False
+
+        self.selectable: bool = False
+        self.playable_positions: List[Position] = []
+        self.visible: bool = True
+
+        self.abilities: List[Ability] = kwargs.get("abilities", [])
+        self.bundle_abilities(self.abilities)
+
+    def _bundle_ability(self, ability: Ability):
+        from app.core.base import Lifetime
+
+        ability.source = self
+        ability.game = self.game
+        ability.position = self.position
+        match ability.lifetime:
+            case Lifetime.IN_DECK:
+                self.in_deck_listeners.append(ability)
+            case Lifetime.IN_HAND:
+                self.in_hand_listeners.append(ability)
+            case Lifetime.IN_FIELD | Lifetime.PERMANENT | Lifetime.ONCE:
+                self.from_play_listeners.append(ability)
+            case _:
+                self.from_play_listeners.append(ability)
+
+    def bundle_abilities(self, abilities: List[Ability]):
+        for ability in abilities:
+            self._bundle_ability(ability)
+
+    def unbundle_ability(self, ability: Ability):
+        from app.core.base import Lifetime
+
+        match ability.lifetime:
+            case Lifetime.IN_DECK:
+                self.in_deck_listeners.remove(ability)
+            case Lifetime.IN_HAND:
+                self.in_hand_listeners.remove(ability)
+            case Lifetime.IN_FIELD | Lifetime.PERMANENT | Lifetime.ONCE:
+                self.from_play_listeners.remove(ability)
+            case _:
+                self.from_play_listeners.remove(ability)
+
+    def update_position(self, position: Position):
+        self.position = position
+        for ability in self.abilities:
+            ability.position = position
+
     @abstractmethod
     def play(self):
         pass
-    
-    
-class FighterCard(Card):
-    def __init__(self, fighter_config: FighterCardConfig, **kwargs):
-        super().__init__(**kwargs)
-        self.fighter_config = fighter_config
 
-        
-class TrickCard(Card):
-    def __init__(self, trick_config: TrickCardConfig, **kwargs):
+
+class Fighter(Card):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.trick_config = trick_config
-        
-    
-class EnvCard(Card):
-    def __init__(self, env_config: EnvCardConfig, **kwargs):
+
+
+class Trick(Card):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.env_config = env_config
+
+
+class Environment(Card):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)

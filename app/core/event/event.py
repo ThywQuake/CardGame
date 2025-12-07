@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from app.core.engine.game import Game
     from app.core import Object, Events
+
 
 class Event(ABC):
     def __init__(self, **kwargs):
@@ -12,9 +14,9 @@ class Event(ABC):
         self.cancelled: bool = False
 
     @abstractmethod
-    def excute(self) -> Events:
+    def execute(self) -> Events:
         pass
-    
+
     def cancel(self):
         self.cancelled = True
         pass
