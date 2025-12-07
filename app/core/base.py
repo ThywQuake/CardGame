@@ -4,6 +4,8 @@ from random import randint
 
 
 class Type(Enum):
+    TOKEN = "TOKEN"
+    
     BEASTY = "BEASTY"
     BRAINY = "BRAINY"
     CRAZY = "CRAZY"
@@ -119,14 +121,19 @@ class Pack(Enum):
     COLOSSAL = "COLOSSAL"
     TRIASSIC = "TRIASSIC"
 
-
+class Lifetime(Enum):
+    PERMANENT = "PERMANENT"
+    ON_HAND = "ON_HAND"
+    ON_FIELD = "ON_FIELD"
+    
+    ONCE = "ONCE"
 @dataclass
 class Config:
     NAME: str = "Unnamed"
     TYPE: Type = Type.BEASTY
     FACTION: Faction = Faction.NEUTRAL
     DESCRIPTION: str = "No description."
-    LABELS: list[Label] = None
+    LABELS: list[Label] = list()
     ART_PATH: str = "path/to/art.png"
     PACK: Pack = Pack.BASIC
     RARITY: Rarity = Rarity.COMMON
@@ -172,7 +179,7 @@ class FighterState:
     DOOMED: bool = False
 
     def __init__(self, config: FighterConfig):
-        self.ID = randint(1e8, 1e9 - 1)
+        self.ID = randint(int(1e8), int(1e9) - 1)
         self.INITIAL_COST = self.CURRENT_COST = self.MAX_COST = config.COST
         self.INITIAL_STRENGTH = self.CURRENT_STRENGTH = self.MAX_STRENGTH = (
             config.STRENGTH
@@ -193,7 +200,7 @@ class CardState:
     IN_GRAVEYARD: bool = False
 
     def __init__(self):
-        self.ID = randint(1e8, 1e9 - 1)
+        self.ID = randint(int(1e8), int(1e9) - 1)
 
 
 class PZone(Enum):
@@ -299,6 +306,24 @@ class Position:
     FACTION: PFaction = PFaction(0)
     SEAT: PSeat = PSeat(0)
     FUSION: PFusion = PFusion(0)
+    
+    def __eq__(self, value: object) -> bool:
+        return (
+            isinstance(value, Position)
+            and self.ZONE == value.ZONE
+            and self.LANE == value.LANE
+            and self.FACTION == value.FACTION
+            and self.SEAT == value.SEAT
+            and self.FUSION == value.FUSION
+        )
+    
+    def __lt__(self, value: object) -> bool:
+        if not isinstance(value, Position):
+            return NotImplemented
+        return (
+            (self.ZONE.value, self.LANE.value, self.FACTION.value, self.SEAT.value, self.FUSION.value)
+            < (value.ZONE.value, value.LANE.value, value.FACTION.value, value.SEAT.value, value.FUSION.value)
+        )
 
 
 class GamePhase(Enum):

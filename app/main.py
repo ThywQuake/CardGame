@@ -1,6 +1,6 @@
 from flask import Flask, render_template
-from app.game.game import Game
-from app.game.models import Player, Faction
+from app.core.game import Game
+from app.core.models import Player, Faction
 
 app = Flask(__name__)
 

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from app.game.base import *
+from app.core.base import Faction, PFaction, PZone, PLane, PSeat, PFusion, Position
 from queue import Queue
 from random import shuffle
 
@@ -33,7 +33,7 @@ class Listener(ABC):
     def __init__(self, **kwargs):
         self.source = kwargs.get("source", None)
         self.interested_events: list[type[Event]] = kwargs.get("interested_events", [])
-        self.absolute_position: Position = kwargs.get("absolute_position", Position())
+        self.position: Position = kwargs.get("position", Position())
 
     @abstractmethod
     def react(self, event: Event, **kwargs) -> Event | list[Event] | None:
@@ -48,12 +48,11 @@ class EventManager:
 
     def register(self, listener: Listener):
         self.listeners.append(listener)
-        self.listeners.sort(key=lambda l: l.absolute_position)
+        self.listeners.sort(key=lambda lsn: lsn.position)
 
     def unregister(self, listener: Listener):
         self.listeners.remove(listener)
-        self.listeners.sort(key=lambda l: l.absolute_position)
-
+        self.listeners.sort(key=lambda lsn: lsn.position)
     def notify(self, event: Event | list[Event]):
         if isinstance(event, list):
             for e in event:

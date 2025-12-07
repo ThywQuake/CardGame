@@ -1,5 +1,5 @@
-from app.game.base import *
-from app.game.models import *
+from app.core.base import *
+from app.core.models import *
 
 
 class Action(ABC):
