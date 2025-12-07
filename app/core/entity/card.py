@@ -4,6 +4,8 @@ from app.core.config import CardConfig
 from typing import List, TYPE_CHECKING
 from app.core.event.listener import Listener
 
+from app.core.base import Position, PFaction
+
 if TYPE_CHECKING:
     from app.core.entity.ability import Ability
     from app.core.base import Position
@@ -18,11 +20,8 @@ class Card(ABC):
         When the card is ready for the battlefield, do some setup here.
         Otherwise, card is for info storage only.
         """
-        from app.core.engine.game import Game
-        from app.core.base import Position, PFaction
 
         self.game_id: int = int(uuid4())
-        self.game: Game = kwargs.get("game", Game())
         self.position: Position = kwargs.get("position", Position())
         self.position.FACTION = PFaction.map(self.config.FACTION)
         self.in_deck_listeners: List[Listener] = kwargs.get("in_deck_listeners", [])
@@ -44,7 +43,6 @@ class Card(ABC):
         from app.core.base import Lifetime
 
         ability.source = self
-        ability.game = self.game
         ability.position = self.position
         match ability.lifetime:
             case Lifetime.IN_DECK:

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 class Field:
     def __init__(self, **kwargs):
         self.zombies: Zombies = kwargs.get("zombies", [None] * 5)
-        self.plants: Plants = kwargs.get("plants", [[None] * 2] * 5)
+        self.plants: Plants = kwargs.get("plants", [[None] * 2 for _ in range(5)])
         self.environments: Environments = kwargs.get("environments", [None] * 5)
 
     def __getitem__(self, position: Position) -> Optional[Union[Fighter, Environment]]:

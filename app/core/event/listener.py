@@ -11,7 +11,6 @@ if TYPE_CHECKING:
 
 class Listener(ABC):
     def __init__(self, **kwargs):
-        self.game: Game = kwargs.get("game", Game())
         self.source: Object = kwargs.get("source", None)
         self.on_events: List[Event] = kwargs.get("on_events", [])
         self.lifetime: Lifetime = kwargs.get("lifetime", Lifetime.ONCE)
@@ -19,12 +18,12 @@ class Listener(ABC):
         self.position: Position = kwargs.get("position", Position())
 
     @abstractmethod
-    def respond(self, event: Event) -> Events:
+    def respond(self, event: Event, game: Game) -> Events:
         pass
 
-    def handle(self, event: Event) -> Events:
+    def handle(self, event: Event, game: Game) -> Events:
         if type(event) in self.on_events:
             if self.lifetime == Lifetime.ONCE:
                 self.end = True
-            return self.respond(event)
+            return self.respond(event, game)
         return []

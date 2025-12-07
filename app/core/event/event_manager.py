@@ -5,13 +5,12 @@ from typing import TYPE_CHECKING, List
 from queue import Queue
 
 if TYPE_CHECKING:
-    from app.core.engine.game import Game
     from app.core import Events
+from app.core.engine.game import Game
 
 
 class EventManager:
     def __init__(self, **kwargs):
-        self.game: Game = kwargs.get("game", Game())
         self.listeners: List[Listener] = []
         self.event_queue: Queue[Event] = Queue()
 
@@ -19,7 +18,7 @@ class EventManager:
         self.listeners.append(listener)
         self.listeners.sort(key=lambda listener: listener.position)
 
-    def notify(self, event: Event):
+    def notify(self, event: Event, game: Game):
         self.event_queue.put(event)
 
         while self.event_queue.qsize() > 0:
@@ -29,13 +28,13 @@ class EventManager:
             for listener in self.listeners:
                 if not self.validate_listener(listener):
                     continue
-                response = listener.handle(current_event)
+                response = listener.handle(current_event, game)
                 if current_event.cancelled:
                     temp_sequence: Events = []
                     break
                 temp_sequence = temp_sequence + response
             else:
-                sequence = current_event.execute() + temp_sequence
+                sequence = current_event.execute(game) + temp_sequence
                 self._put_events(sequence)
 
             self.unregister()
