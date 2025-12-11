@@ -1,6 +1,7 @@
 from app.core.base import Faction, Position
 from app.core.entity.slot import Deck, Hand, Graveyard
 from app.core.entity.hero import Hero
+from app.core.entity.super_block import SuperBlock
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -17,5 +18,6 @@ class Player:
         self.graveyard: Graveyard = kwargs.get("graveyard", Graveyard())
 
         self.hero: Hero = kwargs.get("hero", Hero())
+        self.super_block: SuperBlock = SuperBlock()
 
     def play_card(self, card_index: int, position: Position) -> Events: ...

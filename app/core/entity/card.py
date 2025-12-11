@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from uuid import uuid4
-from app.core.config import CardConfig
-from typing import List, TYPE_CHECKING
+from app.core.config import Config, FighterConfig, TrickConfig, EnvironmentConfig
+from typing import List, TYPE_CHECKING, Optional
 from app.core.event.listener import Listener
-
+from app.core.entity.state import FighterState, EnvironmentState
 from app.core.base import Position, PFaction
 
 if TYPE_CHECKING:
@@ -13,9 +13,11 @@ if TYPE_CHECKING:
 
 class Card(ABC):
     def __init__(self, **kwargs):
-        self.config: CardConfig = kwargs.get("config", CardConfig())
+        self.config: Optional[type[Config]] = kwargs.get("config", None)
+        if self.config is not None:
+            self.position.FACTION = PFaction.map(self.config.FACTION)
 
-    def on_board(self, **kwargs):
+    def _on_board(self, **kwargs):
         """
         When the card is ready for the battlefield, do some setup here.
         Otherwise, card is for info storage only.
@@ -23,7 +25,6 @@ class Card(ABC):
 
         self.game_id: int = int(uuid4())
         self.position: Position = kwargs.get("position", Position())
-        self.position.FACTION = PFaction.map(self.config.FACTION)
         self.in_deck_listeners: List[Listener] = kwargs.get("in_deck_listeners", [])
         self.in_hand_listeners: List[Listener] = kwargs.get("in_hand_listeners", [])
         self.from_play_listeners: List[Listener] = kwargs.get("from_play_listeners", [])
@@ -80,17 +81,46 @@ class Card(ABC):
     def play(self):
         pass
 
+    @abstractmethod
+    def on_board(self, **kwargs):
+        pass
+
 
 class Fighter(Card):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    def on_board(self, **kwargs):
+        self._on_board(**kwargs)
+        assert isinstance(self.config, FighterConfig)
+
+        self.state: FighterState = FighterState()
+        self.state.load(
+            cost=self.config.COST,
+            strength=self.config.STRENGTH,
+            health=self.config.HEALTH,
+        )
 
 
 class Trick(Card):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def on_board(self, **kwargs):
+        self._on_board(**kwargs)
+        assert isinstance(self.config, TrickConfig)
+
+        # Tricks may have states in future updates
+        self.state = None
+
 
 class Environment(Card):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    def on_board(self, **kwargs):
+        self._on_board(**kwargs)
+        assert isinstance(self.config, EnvironmentConfig)
+
+        self.state: EnvironmentState = EnvironmentState()
+        self.state.load(cost=self.config.COST)

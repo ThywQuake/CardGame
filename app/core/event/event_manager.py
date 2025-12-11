@@ -25,7 +25,7 @@ class EventManager:
             current_event = self.event_queue.get()
             self._check_event(current_event)
             temp_sequence: Events = []
-            for listener in self.listeners:
+            for listener in tuple(self.listeners):
                 if not self.validate_listener(listener):
                     continue
                 response = listener.handle(current_event, game)

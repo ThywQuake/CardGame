@@ -43,4 +43,7 @@ class Hand(Slot):
 class Graveyard(Slot):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.size: int = kwargs.get("size", 1000)
+        self.size: int = kwargs.get("size", 9999)
+
+    def bury(self, card: Card) -> None:
+        self.cards.append(card)
