@@ -1,51 +1,44 @@
-from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
+from abc import abstractmethod, ABC
 from app.core.base import Position
+from time import sleep
 
 if TYPE_CHECKING:
-    from app.core.event import Action
-    from app.core import Events
-from app.core.entity.card import Card
+    from app.core import Events, Object
+    from app.core.entity import Player
 
 
 class Action(ABC):
-    def __init__(self, **kwargs):
-        from app.core.engine import Game
-
-        self.game: Game = kwargs.get("game", Game())
-        self.player = self.game.current_player
+    def _parse(self, **kwargs):
+        self.actor: Optional[Player] = kwargs.get("actor", None)
+        self.target: Object = kwargs.get("target", None)
+        self.position: Optional[Position] = kwargs.get("position", None)
+        self.data: dict = kwargs.get("data", {})
 
     @abstractmethod
-    def __or__(self, other: Action) -> Events:
+    def collect(self, **kwargs) -> Events:
+        while True:
+            action: dict = self.listen()
+            if action and self._validate(**action):
+                self._parse(**kwargs)
+                return self._generate_events()
+            else:
+                sleep(0.1)
+
+    @abstractmethod
+    def _validate(self, **kwargs) -> bool:
+        """Validate if the action can be performed."""
+        pass
+
+    @abstractmethod
+    def _generate_events(self) -> Events:
+        """Generate events based on the action."""
+        pass
+
+    @abstractmethod
+    def listen(self) -> dict:
+        """Listen for an action input."""
         pass
 
 
-class SelectPositionInField(Action):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.position: Position = kwargs.get("position", Position())
-
-    def __or__(self, other: Action) -> Events:
-        return []
-
-
-class SelectFighterInField(Action):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.position: Position = kwargs.get("position", Position())
-        self.fighter = self.game.field[self.position]
-
-    def __or__(self, other: Action) -> Events:
-        return []
-
-
-class SelectCardInHand(Action):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.card_index: int = kwargs.get("card_index", -1)
-        self.card: Card = self.player.hand[self.card_index]
-
-    def __or__(self, other: Action) -> Events:
-        if isinstance(other, SelectPositionInField):
-            return self.player.play_card(self.card_index, other.position)
-        return []
+class CardPlayAction(Action): ...

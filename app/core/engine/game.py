@@ -1,6 +1,7 @@
 from app.core.entity import Player, Field
 from app.core.event import EventManager
 from app.core.base import Faction
+from app.core.event import Event
 
 
 class Game:
@@ -16,3 +17,8 @@ class Game:
         self.event_manager = EventManager(game=self)
 
         self.field = Field()
+
+    def step(self, event: Event):
+        """Process a game step based on the provided action."""
+        # Implementation of game step processing goes here
+        pass
