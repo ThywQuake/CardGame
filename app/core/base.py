@@ -348,6 +348,16 @@ class Position:
             value.FUSION.value,
         )
 
+    @staticmethod
+    def highest_priority():
+        return Position(
+            ZONE=PZone(0),
+            LANE=PLane(0),
+            FACTION=PFaction(0),
+            SEAT=PSeat(0),
+            FUSION=PFusion(0),
+        )
+
 
 class GamePhase(Enum):
     INITIAL_DRAW = "INITIAL_DRAW"

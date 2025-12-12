@@ -8,9 +8,26 @@ if TYPE_CHECKING:
 
 class Event(ABC):
     def __init__(self, **kwargs):
+        """
+
+        Event priority mapping:
+        - level 0: Game Over Events + Surprise Phase Starting.
+        - level 1: Critical Events (e.g., Hero Hurt)
+        - level 2: High Priority Events (e.g., Card Draw, Energy Gain)
+        - level 3: Normal Events (e.g., Card Play)
+        - level 4: Pair Event: Surprise Phase Ending.
+        - level 5: Pair Event: Lane Combat Starting/Ending.
+        - level 6: Pair Event: Phase Starting/Ending.
+        - level 7: Pair Event: Turn Starting/Ending.
+
+        """
+
         self.source: Object = kwargs.get("source", None)
         self.target: Object = kwargs.get("target", None)
+        self.amount: int = kwargs.get("amount", 0)
+        self.data: dict = kwargs.get("data", {})
         self.cancelled: bool = False
+        self.priority: int = kwargs.get("priority", 3)
 
     @abstractmethod
     def execute(self, game: Game) -> Events:
@@ -18,4 +35,3 @@ class Event(ABC):
 
     def cancel(self):
         self.cancelled = True
-        pass

@@ -9,20 +9,60 @@ if TYPE_CHECKING:
 from app.core.engine.game import Game
 
 
+class EventQueue:
+    def __init__(self, levels: int = 8):
+        """
+        Set up a multi-level priority queue for events.
+        Higher priority events (lower numerical value) are processed first.
+
+        :param levels: Number of priority levels.
+
+        Event priority mapping:
+        - level 0: Game Over Events + Surprise Phase Starting.
+        - level 1: Critical Events (e.g., Hero Hurt)
+        - level 2: High Priority Events (e.g., Card Draw, Energy Gain)
+        - level 3: Normal Events (e.g., Card Play)
+        - level 4: Pair Event: Surprise Phase Ending.
+        - level 5: Pair Event: Lane Combat Starting/Ending.
+        - level 6: Pair Event: Phase Starting/Ending.
+        - level 7: Pair Event: Turn Starting/Ending.
+
+        """
+        self.levels = levels
+        self.queues: List[Queue[Event]] = [Queue() for _ in range(levels)]
+
+    def put(self, event: Event):
+        priority = event.priority
+        if priority < 0:
+            priority = 0
+        elif priority >= self.levels:
+            priority = self.levels - 1
+        self.queues[priority].put(event)
+
+    def get(self) -> Event | None:
+        for queue in self.queues:
+            if not queue.empty():
+                return queue.get()
+        return None
+
+    def __len__(self):
+        return sum(queue.qsize() for queue in self.queues)
+
+
 class EventManager:
     def __init__(self, **kwargs):
         self.listeners: List[Listener] = []
-        self.event_queue: Queue[Event] = Queue()
+        self.event_queue: EventQueue = EventQueue(levels=5)
 
     def register(self, listener: Listener):
         self.listeners.append(listener)
         self.listeners.sort(key=lambda listener: listener.position)
 
-    def notify(self, event: Event, game: Game):
-        self.event_queue.put(event)
-
-        while self.event_queue.qsize() > 0:
+    def notify(self, game: Game):
+        while len(self.event_queue) > 0:
             current_event = self.event_queue.get()
+            if current_event is None:
+                break
             self._check_event(current_event)
             temp_sequence: Events = []
             for listener in tuple(self.listeners):
@@ -35,11 +75,11 @@ class EventManager:
                 temp_sequence = temp_sequence + response
             else:
                 sequence = current_event.execute(game) + temp_sequence
-                self._put_events(sequence)
+                self.put_events(sequence)
 
             self.unregister()
 
-    def _put_events(self, events: Events):
+    def put_events(self, events: Events):
         for event in events:
             if event is not None:
                 self.event_queue.put(event)
@@ -72,5 +112,10 @@ class EventManager:
             listener.end = True
         return not end
 
-    def unregister(self):
-        self.listeners = [listener for listener in self.listeners if not listener.end]
+    def unregister(self, listener: Listener | None = None):
+        if listener is not None:
+            self.listeners = [lis for lis in self.listeners if lis != listener]
+        else:
+            self.listeners = [
+                listener for listener in self.listeners if not listener.end
+            ]

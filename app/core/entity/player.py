@@ -20,4 +20,27 @@ class Player:
         self.hero: Hero = kwargs.get("hero", Hero())
         self.super_block: SuperBlock = SuperBlock()
 
+        self.energy: int = kwargs.get("energy", 0)
+        self.health: int = kwargs.get("health", 20)
+
+    def draw(self, count: int = 1) -> Events:
+        from app.core.event.event_assemble import CardDrawEvent
+
+        events: Events = []
+        for _ in range(count):
+            if not self.deck.cards:
+                break
+            card = self.deck.cards.pop(0)
+            events.append(CardDrawEvent(source=self, target=card))
+
+        return events
+
+    def get_energy(self, amount: int) -> Events:
+        from app.core.event.event_assemble import EnergyGainEvent
+
+        return [EnergyGainEvent(source=self, amount=amount)]
+
+    def opposite_faction(self) -> Faction:
+        return Faction.PLANT if self.faction == Faction.ZOMBIE else Faction.ZOMBIE
+
     def play_card(self, card_index: int, position: Position) -> Events: ...

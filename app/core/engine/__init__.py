@@ -1,4 +1,4 @@
 from .game import Game
-from .exception import GameEndingException, SurprisePhaseException
+from .exception import GameOverException, SurprisePhaseException
 
-__all__ = ["Game", "GameEndingException", "SurprisePhaseException"]
+__all__ = ["Game", "GameOverException", "SurprisePhaseException"]

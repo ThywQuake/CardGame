@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 import random
-from app.core.event.event_assemble import SurprisePhaseEvent
+from app.core.event.event_assemble import SurprisePhaseStartEvent
 
 if TYPE_CHECKING:
     from app.core import Events, Game
@@ -20,5 +20,5 @@ class SuperBlock:
         if self.current_block == self.max_block:
             self.endurance -= 1
             self.current_block = 0
-            return [SurprisePhaseEvent(game=game)]
+            return [SurprisePhaseStartEvent(game=game)]
         return []

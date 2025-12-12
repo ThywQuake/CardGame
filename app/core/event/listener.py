@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class Listener(ABC):
     def __init__(self, **kwargs):
         self.source: Object = kwargs.get("source", None)
-        self.on_events: List[Event] = kwargs.get("on_events", [])
+        self.on_events: List[type[Event]] = kwargs.get("on_events", [])
         self.lifetime: Lifetime = kwargs.get("lifetime", Lifetime.ONCE)
         self.end: bool = False
         self.position: Position = kwargs.get("position", Position())
