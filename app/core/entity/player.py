@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 class Player:
     def __init__(self, **kwargs):
         self.name: str = kwargs.get("name", "Player")
+        self.id: int = kwargs.get("id", 0)
         self.faction: Faction = kwargs.get("faction", Faction.ZOMBIE)
 
         self.deck: Deck = kwargs.get("deck", Deck())

@@ -169,3 +169,25 @@ class HeroHurtEvent(Event):
                 source=self.source, target=self.target, amount=self.amount
             ),
         ]
+
+
+class PhaseEndEvent(Event):
+    priority: int = 0
+
+    def execute(self, game: Game) -> Events:
+        from app.core.base import GamePhase
+
+        match game.phase:
+            case GamePhase.ZOMBIE_PHASE:
+                return [ZombiePhaseEndEvent()]
+            case GamePhase.PLANT_PHASE:
+                return [PlantPhaseEndEvent()]
+            case GamePhase.ZOMBIE_TRICK_PHASE:
+                return [ZombieTrickPhaseEndEvent()]
+            case _:
+                return []
+
+
+class ActionExpireEvent(Event):
+    def execute(self, game: Game) -> Events:
+        return []

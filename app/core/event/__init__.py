@@ -1,6 +1,6 @@
 from .event import Event
 from .event_manager import EventManager
 from .listener import Listener
-from .action import PhaseAction
+from .action import ActionManager
 
-__all__ = ["Event", "EventManager", "Listener", "PhaseAction"]
+__all__ = ["Event", "EventManager", "Listener", "ActionManager"]

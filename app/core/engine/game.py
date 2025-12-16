@@ -1,5 +1,5 @@
 from app.core.entity import Player, Field
-from app.core.event import EventManager
+from app.core.event import EventManager, ActionManager
 from app.core.base import Faction, GamePhase
 from app.core import Events
 from queue import Queue
@@ -17,11 +17,19 @@ class Game:
         self.event_manager = EventManager(game=self)
         self.input_queue: Queue = Queue()
 
+        self.action_manager = ActionManager(game=self)
+
         # Status tracking
         self.current_player: Player = self.zombie_player
         self.turn_count: int = 1
+        self.is_running: bool = False
         self.phase: GamePhase = GamePhase.INITIAL_DRAW
         self.surprise_phase: bool = False
+
+    def start_game(self):
+        self.is_running = True
+        self.initial_draw()
+        self.start_new_turn()
 
     def step(self, *args: Events):
         for events in args:
@@ -29,14 +37,34 @@ class Game:
         self.event_manager.notify(self)
 
     def act_on(self, action_payload: dict):
-        """Process an action payload from a player."""
-        # Implementation of action processing goes here
-        pass
+        """
+        This is the only external method to accept player actions.
+        """
+        if not self.is_running:
+            return
 
-    def run(self):
-        self.initial_draw()
-        while self.run_turn():
-            pass
+        self.action_manager.receive_network_input(action_payload)
+
+    def tick(self, dt: float):
+        """
+        The main game loop tick function.
+        Should be called periodically to advance the game state.
+        """
+        if not self.is_running:
+            return
+
+        # 1. Update ActionManager to process any active actions
+        self.action_manager.update(dt)
+
+    def start_new_turn(self):
+        from app.core.event.event_assemble import TurnStartEvent
+
+        self.turn_count += 1
+        self.phase = GamePhase.TURN_START
+
+        self.step([TurnStartEvent()])
+
+        self.zombie_phase()
 
     def initial_draw(self):
         """Handle the initial card draw phase for both players."""
@@ -49,26 +77,6 @@ class Game:
             self.plant_player.get_energy(1),
             [TurnStartEvent()],
         )
-
-    def run_turn(self) -> bool:
-        try:
-            if self.turn_count > 1:
-                self.turn_start()
-            self.zombie_phase()
-            self.plant_phase()
-            self.zombie_trick_phase()
-            self.combat_phase()
-            self.turn_end()
-            return True
-        except Exception as e:
-            print(e)
-            return False
-
-    def turn_start(self):
-        from app.core.event.event_assemble import TurnStartEvent
-
-        self.turn_count += 1
-        self.step([TurnStartEvent()])
 
     def zombie_phase(self):
         pass
