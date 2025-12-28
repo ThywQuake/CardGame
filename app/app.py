@@ -2,6 +2,7 @@ import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from typing import Dict, Optional
 from pydantic import BaseModel
+from typing import Literal
 
 from app.core.engine import Game
 
@@ -14,7 +15,9 @@ class PlayerActionPayload(BaseModel):
     FastAPI 将自动验证这个结构。
     """
 
-    type: str  # e.g., "PLAY_CARD", "END_PHASE", "EMOTE"
+    type: Literal[
+        "PLAY_CARD", "END_TURN", "CHOOSE_ITEM", "CHOOSE_POSITION", "SURRENDER", "OTHER"
+    ]
     data: Dict = {}
 
 

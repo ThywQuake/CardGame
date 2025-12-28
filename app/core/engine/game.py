@@ -65,6 +65,10 @@ class Game:
         self.step([TurnStartEvent()])
 
         self.zombie_phase()
+        self.plant_phase()
+        self.zombie_trick_phase()
+        self.combat_phase()
+        self.turn_end()
 
     def initial_draw(self):
         """Handle the initial card draw phase for both players."""
@@ -79,7 +83,10 @@ class Game:
         )
 
     def zombie_phase(self):
-        pass
+        # from app.core.event.action import PlayCardAction
+
+        # self.action_manager.push_action(PlayCardAction())
+        ...
 
     def plant_phase(self):
         pass

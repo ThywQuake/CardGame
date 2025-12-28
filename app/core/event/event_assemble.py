@@ -1,6 +1,7 @@
 from app.core import Events
 from app.core.engine.game import Game
 from app.core.event.event import Event
+from app.core.base import GamePhase
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -50,6 +51,8 @@ class ZombiePhaseStartEvent(Event):
     priority: int = 6
 
     def execute(self, game: Game) -> Events:
+        game.current_player = game.zombie_player
+        game.phase = GamePhase.ZOMBIE_PHASE
         return [ZombiePhaseEndEvent()]
 
 
@@ -191,3 +194,17 @@ class PhaseEndEvent(Event):
 class ActionExpireEvent(Event):
     def execute(self, game: Game) -> Events:
         return []
+
+
+class CombatPhaseEndEvent(Event):
+    priority: int = 6
+
+    def execute(self, game: Game) -> Events:
+        return []
+
+
+class CombatPhaseStartEvent(Event):
+    priority: int = 6
+
+    def execute(self, game: Game) -> Events:
+        return [CombatPhaseEndEvent()]

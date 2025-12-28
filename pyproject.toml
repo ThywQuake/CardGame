@@ -11,7 +11,6 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.124.4",
-    "flask>=3.1.2",
     "unicorn>=2.1.4",
 ]
 

@@ -44,4 +44,11 @@ class Player:
     def opposite_faction(self) -> Faction:
         return Faction.PLANT if self.faction == Faction.ZOMBIE else Faction.ZOMBIE
 
-    def play_card(self, card_index: int, position: Position) -> Events: ...
+    def play_card(self, card_index: int, position: Position) -> Events:
+        from app.core.event.event_assemble import CardPlayEvent
+
+        if card_index < 0 or card_index >= len(self.hand.cards):
+            return []
+
+        card = self.hand.cards[card_index]
+        return [CardPlayEvent(source=self, target=card, position=position)]

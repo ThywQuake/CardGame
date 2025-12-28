@@ -39,6 +39,16 @@ class Hand(Slot):
     def __getitem__(self, index: int) -> Card:
         return self.cards[index]
 
+    def activate(self, type: List[type]):
+        for card in self.cards:
+            if card.__class__ in type:
+                card.activate()
+
+    def deactivate(self, type: List[type]):
+        for card in self.cards:
+            if card.__class__ in type:
+                card.deactivate()
+
 
 class Graveyard(Slot):
     def __init__(self, **kwargs):

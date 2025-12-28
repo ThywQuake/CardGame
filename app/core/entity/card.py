@@ -85,6 +85,12 @@ class Card(ABC):
     def on_board(self, **kwargs):
         pass
 
+    def activate(self):
+        self.selectable = True
+
+    def deactivate(self):
+        self.selectable = False
+
 
 class Fighter(Card):
     def __init__(self, **kwargs):

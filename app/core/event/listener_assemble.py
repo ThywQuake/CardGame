@@ -49,3 +49,79 @@ class SurprisePhaseListener(Listener):
         ):
             event.cancel()
         return []
+
+
+class HandActivateListener(Listener):
+    def __init__(self, **kwargs):
+        from app.core.event.event_assemble import (
+            ZombiePhaseStartEvent,
+            PlantPhaseStartEvent,
+            ZombieTrickPhaseStartEvent,
+            CombatPhaseStartEvent,
+        )
+
+        super().__init__(**kwargs)
+
+        self.on_events = [
+            PlantPhaseStartEvent,
+            ZombiePhaseStartEvent,
+            ZombieTrickPhaseStartEvent,
+            CombatPhaseStartEvent,
+        ]
+        self.lifetime = Lifetime.PERMANENT
+        self.position = Position.highest_priority()
+
+    def respond(self, event: Event, game: Game) -> Events:
+        from app.core.event.event_assemble import (
+            ZombiePhaseStartEvent,
+            PlantPhaseStartEvent,
+            ZombieTrickPhaseStartEvent,
+        )
+        from app.core.entity.card import Fighter, Trick, Environment
+
+        if isinstance(event, ZombiePhaseStartEvent):
+            game.current_player.hand.activate(type=[Fighter])
+        elif isinstance(event, PlantPhaseStartEvent):
+            game.current_player.hand.activate(type=[Fighter, Trick, Environment])
+        elif isinstance(event, ZombieTrickPhaseStartEvent):
+            game.current_player.hand.activate(type=[Trick, Environment])
+
+        return []
+
+
+class HandDeactivateListener(Listener):
+    def __init__(self, **kwargs):
+        from app.core.event.event_assemble import (
+            ZombiePhaseEndEvent,
+            PlantPhaseEndEvent,
+            ZombieTrickPhaseEndEvent,
+            CombatPhaseStartEvent,
+        )
+
+        super().__init__(**kwargs)
+
+        self.on_events = [
+            PlantPhaseEndEvent,
+            ZombiePhaseEndEvent,
+            ZombieTrickPhaseEndEvent,
+            CombatPhaseStartEvent,
+        ]
+        self.lifetime = Lifetime.PERMANENT
+        self.position = Position.highest_priority()
+
+    def respond(self, event: Event, game: Game) -> Events:
+        from app.core.event.event_assemble import (
+            ZombiePhaseEndEvent,
+            PlantPhaseEndEvent,
+            ZombieTrickPhaseEndEvent,
+        )
+        from app.core.entity.card import Fighter, Trick, Environment
+
+        if isinstance(event, ZombiePhaseEndEvent):
+            game.current_player.hand.deactivate(type=[Fighter, Trick, Environment])
+        elif isinstance(event, PlantPhaseEndEvent):
+            game.current_player.hand.deactivate(type=[Fighter, Trick, Environment])
+        elif isinstance(event, ZombieTrickPhaseEndEvent):
+            game.current_player.hand.deactivate(type=[Fighter, Trick, Environment])
+
+        return []
