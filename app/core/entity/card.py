@@ -23,7 +23,7 @@ class Card(ABC):
         Otherwise, card is for info storage only.
         """
 
-        self.game_id: int = int(uuid4())
+        self.game_id: str = uuid4().hex
         self.position: Position = kwargs.get("position", Position())
         self.in_deck_listeners: List[Listener] = kwargs.get("in_deck_listeners", [])
         self.in_hand_listeners: List[Listener] = kwargs.get("in_hand_listeners", [])
