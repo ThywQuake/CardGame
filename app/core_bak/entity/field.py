@@ -1,5 +1,5 @@
-from app.core.base import Position
-from app.core.entity.card import Fighter, Environment
+from app.core_bak.base import Position
+from app.core_bak.entity.card import Fighter, Environment
 from typing import List, TYPE_CHECKING, Optional, Union
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ class Field:
         self.environments: Environments = kwargs.get("environments", [None] * 5)
 
     def __getitem__(self, position: Position) -> Optional[Union[Fighter, Environment]]:
-        from app.core.base import PZone, PFaction
+        from app.core_bak.base import PZone, PFaction
 
         if not position.ZONE == PZone.FIELD:
             return None

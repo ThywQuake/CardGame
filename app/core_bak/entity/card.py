@@ -1,14 +1,14 @@
 from abc import ABC, abstractmethod
 from uuid import uuid4
-from app.core.config import Config, FighterConfig, TrickConfig, EnvironmentConfig
+from app.core_bak.config import Config, FighterConfig, TrickConfig, EnvironmentConfig
 from typing import List, TYPE_CHECKING, Optional
-from app.core.event.listener import Listener
-from app.core.entity.state import FighterState, EnvironmentState
-from app.core.base import Position, PFaction
+from app.core_bak.event.listener import Listener
+from app.core_bak.entity.state import FighterState, EnvironmentState
+from app.core_bak.base import Position, PFaction
 
 if TYPE_CHECKING:
-    from app.core.entity.ability import Ability
-    from app.core.base import Position
+    from app.core_bak.entity.ability import Ability
+    from app.core_bak.base import Position
 
 
 class Card(ABC):
@@ -41,7 +41,7 @@ class Card(ABC):
         self.bundle_abilities(self.abilities)
 
     def _bundle_ability(self, ability: Ability):
-        from app.core.base import Lifetime
+        from app.core_bak.base import Lifetime
 
         ability.source = self
         ability.position = self.position
@@ -60,7 +60,7 @@ class Card(ABC):
             self._bundle_ability(ability)
 
     def unbundle_ability(self, ability: Ability):
-        from app.core.base import Lifetime
+        from app.core_bak.base import Lifetime
 
         match ability.lifetime:
             case Lifetime.IN_DECK:

@@ -1,5 +1,5 @@
-from app.core.config import HeroConfig
-from app.core.entity.slot import Deck
+from app.core_bak.config import HeroConfig
+from app.core_bak.entity.slot import Deck
 
 
 class Hero:

@@ -1,8 +1,8 @@
-from app.core.base import Faction
+from app.core_bak.base import Faction
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.core.entity.player import Player
+    from app.core_bak.entity.player import Player
 
 
 class GameOverException(Exception):

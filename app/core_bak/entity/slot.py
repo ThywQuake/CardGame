@@ -1,5 +1,5 @@
 from abc import ABC
-from app.core.entity.card import Card
+from app.core_bak.entity.card import Card
 from typing import List, Optional
 
 

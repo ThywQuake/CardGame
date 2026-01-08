@@ -1,9 +1,9 @@
 from typing import TYPE_CHECKING
 import random
-from app.core.event.event_assemble import SurprisePhaseStartEvent
+from app.core_bak.event.event_assemble import SurprisePhaseStartEvent
 
 if TYPE_CHECKING:
-    from app.core import Events, Game
+    from app.core_bak import Events, Game
 
 
 class SuperBlock:

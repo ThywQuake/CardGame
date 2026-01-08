@@ -4,7 +4,7 @@ from typing import Dict, Optional
 from pydantic import BaseModel
 from typing import Literal
 
-from app.core.engine import Game
+from app.core_bak.engine import Game
 
 # --- Pydantic 模型：用于验证玩家输入 ---
 

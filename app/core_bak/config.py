@@ -1,10 +1,10 @@
-from app.core.base import Faction, Rarity, Type, Pack
+from app.core_bak.base import Faction, Rarity, Type, Pack
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
-    from app.core.entity.ability import Ability
+    from app.core_bak.entity.ability import Ability
 
 
 def parse_config(config_path: str) -> dict:
@@ -37,7 +37,7 @@ class Config(ABC):
         self._read(**data)
 
     def _read_abilities(self, abilities: List[dict]):
-        from app.core.entity.ability_assemble import __dict__
+        from app.core_bak.entity.ability_assemble import __dict__
 
         for ability in abilities:
             if ability["name"] in __dict__:

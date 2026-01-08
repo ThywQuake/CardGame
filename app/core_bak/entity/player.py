@@ -1,11 +1,11 @@
-from app.core.base import Faction, Position
-from app.core.entity.slot import Deck, Hand, Graveyard
-from app.core.entity.hero import Hero
-from app.core.entity.super_block import SuperBlock
+from app.core_bak.base import Faction, Position
+from app.core_bak.entity.slot import Deck, Hand, Graveyard
+from app.core_bak.entity.hero import Hero
+from app.core_bak.entity.super_block import SuperBlock
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.core import Events
+    from app.core_bak import Events
 
 
 class Player:
@@ -25,7 +25,7 @@ class Player:
         self.health: int = kwargs.get("health", 20)
 
     def draw(self, count: int = 1) -> Events:
-        from app.core.event.event_assemble import CardDrawEvent
+        from app.core_bak.event.event_assemble import CardDrawEvent
 
         events: Events = []
         for _ in range(count):
@@ -37,7 +37,7 @@ class Player:
         return events
 
     def get_energy(self, amount: int) -> Events:
-        from app.core.event.event_assemble import EnergyGainEvent
+        from app.core_bak.event.event_assemble import EnergyGainEvent
 
         return [EnergyGainEvent(source=self, amount=amount)]
 
@@ -45,7 +45,7 @@ class Player:
         return Faction.PLANT if self.faction == Faction.ZOMBIE else Faction.ZOMBIE
 
     def play_card(self, card_index: int, position: Position) -> Events:
-        from app.core.event.event_assemble import CardPlayEvent
+        from app.core_bak.event.event_assemble import CardPlayEvent
 
         if card_index < 0 or card_index >= len(self.hand.cards):
             return []

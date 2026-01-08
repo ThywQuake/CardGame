@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.core.engine.game import Game
-    from app.core import Events
+    from app.core_bak import Object, Events
+    from app.core_bak.engine.game import Game
 
 
 class Event(ABC):
@@ -22,8 +22,8 @@ class Event(ABC):
 
         """
 
-        self.source_id: str = kwargs.get("source", "fake_id")
-        self.target_id: str = kwargs.get("target", "fake_id")
+        self.source: Object = kwargs.get("source", None)
+        self.target: Object = kwargs.get("target", None)
         self.amount: int = kwargs.get("amount", 0)
         self.data: dict = kwargs.get("data", {})
         self.cancelled: bool = False
@@ -35,6 +35,3 @@ class Event(ABC):
 
     def cancel(self):
         self.cancelled = True
-
-    def name(self) -> str:
-        return self.__class__.__name__
