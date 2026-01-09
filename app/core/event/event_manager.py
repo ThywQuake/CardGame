@@ -131,6 +131,12 @@ class EventManager:
                 temp_sequence.extend(response)
                 if listener.end:
                     self.unregister(listener)
+
+            if current_event.cancelled:
+                continue
+
+            current_event_sequence = current_event.execute(game)
+            temp_sequence.extend(current_event_sequence)
             for event in temp_sequence:
                 if event is not None:
                     self.event_queue.put(event)
