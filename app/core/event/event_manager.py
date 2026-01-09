@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.core.engine.game import Game
-    from typing import List
+    from typing import List, Dict
 
 
 class EventQueue:
@@ -49,20 +49,69 @@ class EventQueue:
         return sum(queue.qsize() for queue in self.queues)
 
 
-class EventManager:
+class ListenerPool:
     def __init__(self):
         self.listeners: List[Listener] = []
+        self.source_map: Dict[str | None, List[Listener]] = {None: []}
+        self.on_event_group: Dict[str, List[Listener]] = {}
+
+    def register(self, listener: Listener):
+        self.listeners.append(listener)
+        if listener.source is None:
+            self.source_map[None].append(listener)
+        else:
+            sid = listener.source.id
+            if sid not in self.source_map:
+                self.source_map[sid] = []
+            self.source_map[sid].append(listener)
+
+        on_events = listener.on_events
+        for event_name in on_events:
+            if event_name not in self.on_event_group:
+                self.on_event_group[event_name] = []
+            self.on_event_group[event_name].append(listener)
+
+    def unregister(self, listener: Listener):
+        if listener in self.listeners:
+            self.listeners.remove(listener)
+
+        if listener.source is None:
+            if listener in self.source_map[None]:
+                self.source_map[None].remove(listener)
+        else:
+            sid = listener.source.id
+            if sid in self.source_map and listener in self.source_map[sid]:
+                self.source_map[sid].remove(listener)
+
+        on_events = listener.on_events
+        for event_name in on_events:
+            if (
+                event_name in self.on_event_group
+                and listener in self.on_event_group[event_name]
+            ):
+                self.on_event_group[event_name].remove(listener)
+
+    def query_by_source(self, source_id: str | None) -> List[Listener]:
+        return self.source_map.get(source_id, [])
+
+    def query_by_event(self, event_name: str) -> List[Listener]:
+        listeners = self.on_event_group.get(event_name, [])
+        listeners.sort(key=lambda listener: listener.pos)
+        return listeners
+
+
+class EventManager:
+    def __init__(self):
+        self.listener_pool: ListenerPool = ListenerPool()
         self.event_queue: EventQueue = EventQueue(levels=8)
 
         self.MAX_STEPS = 1000  # Prevent infinite loops
 
     def register(self, listener: Listener):
-        self.listeners.append(listener)
-        self.listeners.sort(key=lambda listener: listener.pos)
+        self.listener_pool.register(listener)
 
     def unregister(self, listener: Listener):
-        if listener in self.listeners:
-            self.listeners.remove(listener)
+        self.listener_pool.unregister(listener)
 
     def notify(self, game: Game):
         temp_steps = 0
@@ -74,7 +123,8 @@ class EventManager:
                 continue
 
             temp_sequence: Events = []
-            for listener in tuple(self.listeners):
+            listeners = self.listener_pool.query_by_event(current_event.name)
+            for listener in listeners:
                 if not listener.validate(game):
                     continue
                 response = listener.handle(current_event, game)

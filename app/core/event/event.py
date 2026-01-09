@@ -39,5 +39,6 @@ class Event(ABC):
     def cancel(self):
         self.cancelled = True
 
+    @property
     def name(self) -> str:
         return self.__class__.__name__
