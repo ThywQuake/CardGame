@@ -52,7 +52,7 @@ class Listener(ABC):
             return True
 
         source_id = self.source.id
-        if source_id in game.item_manager.group_keeper:
+        if source_id in game.item_manager._indices:
             return True
 
         return False
