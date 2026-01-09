@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
+from uuid import uuid4
 
 if TYPE_CHECKING:
     from app.core.engine.game import Game
@@ -22,8 +23,10 @@ class Event(ABC):
 
         """
 
-        self.source_id: str = kwargs.get("source", "fake_id")
-        self.target_id: str = kwargs.get("target", "fake_id")
+        self.id = str(uuid4())
+
+        self.source_id: str | None = kwargs.get("source", None)
+        self.target_id: str | None = kwargs.get("target", None)
         self.amount: int = kwargs.get("amount", 0)
         self.data: dict = kwargs.get("data", {})
         self.cancelled: bool = False

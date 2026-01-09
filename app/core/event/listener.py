@@ -30,6 +30,7 @@ class Listener(ABC):
             return response
         return []
 
+    @property
     def pos(self) -> tuple[int, int, int, int]:
         from app.core.item.target import Fighter, Env
 
@@ -42,3 +43,16 @@ class Listener(ABC):
             if lane:
                 return (1, lane.lane, 0, 0)
         return (0, 0, 0, 0)
+
+    def validate(self, game: Game) -> bool:
+        if self.end:
+            return False
+
+        if self.source is None:
+            return True
+
+        source_id = self.source.id
+        if source_id in game.item_manager.group_keeper:
+            return True
+
+        return False

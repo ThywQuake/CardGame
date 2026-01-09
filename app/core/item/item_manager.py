@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import Callable, Literal, TypeVar
+    from app.core.event.event import Event
 
     Items = TypeVar("Items", bound=Item)
 
@@ -252,7 +253,7 @@ class ItemManager:
             else:
                 return None
 
-    def samelane_pose(self, pos: Pos) -> Pos | None:
+    def same_lane_pos(self, pos: Pos) -> Pos | None:
         if pos.faction == Faction.ZOMBIE:
             return None
 
@@ -268,7 +269,7 @@ class ItemManager:
         """
         if pos.occupied and pos.faction == Faction.PLANT:
             former_fighter_id: str = pos.occupier_id  # type: ignore
-            samelane_pos = self.samelane_pose(pos)
+            samelane_pos = self.same_lane_pos(pos)
             if samelane_pos is not None and not samelane_pos.occupied:
                 former_fighter = self.query_by_id(former_fighter_id)
                 if isinstance(former_fighter, Fighter):
@@ -284,6 +285,17 @@ class ItemManager:
         lane.cover_by(env.id)
         env.on_lane = lane
         self.add_item(env, "targets")
+
+    def check_event_possible(self, event: Event) -> bool:
+        """
+        Check if an event is possible in the current game state.
+        """
+        source_id = event.source_id
+        target_id = event.target_id
+
+        flag1 = (source_id is None) or (source_id in self.group_keeper)
+        flag2 = (target_id is None) or (target_id in self.group_keeper)
+        return flag1 and flag2
 
 
 if __name__ == "__main__":

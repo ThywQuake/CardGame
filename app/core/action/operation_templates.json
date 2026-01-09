@@ -1,0 +1,24 @@
+[
+    {
+        "operation_name": "Play Card",
+        "faction": "ZOMBIE",
+        "data": {
+            "card_id": "xxx",
+            "pos_id": "xxx",
+            "fusion": false
+        }
+    },
+    {
+        "operation_name": "Select Target",
+        "faction": "PLANT",
+        "data": {
+            "target_type": "Fighter",
+            "target_id": "xxx"
+        }
+    },
+    {
+        "operation_name": "End Turn",
+        "faction": "ZOMBIE",
+        "data": {}
+    }
+]
