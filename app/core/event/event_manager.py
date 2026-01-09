@@ -124,7 +124,7 @@ class EventManager:
 
             temp_sequence: Events = []
             listeners = self.listener_pool.query_by_event(current_event.name)
-            for listener in listeners:
+            for listener in tuple(listeners):
                 if not listener.validate(game):
                     continue
                 response = listener.handle(current_event, game)
