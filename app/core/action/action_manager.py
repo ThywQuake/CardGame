@@ -9,17 +9,18 @@ if TYPE_CHECKING:
 class ActionManager:
     def __init__(self):
         self.pending_actions: list[Action] = []
-        self.current_action: Action | None = None
         self.paused: bool = False
+
+    @property
+    def current_action(self) -> Action | None:
+        return self.pending_actions[-1] if self.pending_actions else None
 
     def open_action(self, action: Action):
         self.pending_actions.append(action)
-        self.current_action = action
 
-    def close_action(self):
-        if self.current_action in self.pending_actions:
-            self.pending_actions.remove(self.current_action)
-        self.current_action = self.pending_actions[-1] if self.pending_actions else None
+    def _pop_action(self):
+        if self.pending_actions:
+            self.pending_actions.pop()
 
     def receive(self, operation: dict, game: Game):
         try:
@@ -28,15 +29,18 @@ class ActionManager:
                 faction=operation["faction"],
                 data=operation["data"],
             )  # type: ignore
-        except KeyError:
-            return
+        except (KeyError, TypeError):
+            return False
 
         if op.operation_name == "end_phase":
-            self.end_phase(op, game)
-            return
+            self._handle_end_phase(op, game)
+            return True
 
         if self.current_action:
             self.current_action.receive(op)
+            return True
+
+        return False
 
     def update(self, dt: float, game: Game):
         if self.current_action:
@@ -45,12 +49,12 @@ class ActionManager:
                 self.paused = True
                 game.run_events(events)
 
-    def end_phase(self, operation: Operation, game: Game):
+    def _handle_end_phase(self, operation: Operation, game: Game):
         # Check endable
         faction = operation.faction
         if not game.item_manager.end_phase_button.activated[faction]:
             return  # Not endable
 
         self.pending_actions.clear()
-        self.current_action = None
         self.paused = False
+        game.next_phase()
