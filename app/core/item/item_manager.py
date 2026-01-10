@@ -124,6 +124,26 @@ class ItemManager:
         return merge_dicts([self._indices["z_poses"], self._indices["p_poses"]])
 
     @property
+    def lanes(self) -> Dict[str, Lane]:
+        """
+        Get all lanes managed by the item manager.
+        """
+        lane_ids = self._indices["lanes"]
+        lanes = {}
+        for lane_id in lane_ids:
+            lane = self.get_by_id(lane_id)
+            if isinstance(lane, Lane):
+                lanes[lane_id] = lane
+        return lanes
+
+    @property
+    def num_lanes(self) -> int:
+        """
+        Get the number of lanes in the game.
+        """
+        return len(self._indices["lanes"])
+
+    @property
     def end_phase_button(self) -> EndPhaseButton:
         """
         Get the end phase button item.
@@ -173,6 +193,7 @@ class ItemManager:
         """
         Query an item by its unique ID.
         """
+
         if item_id in self._all_items:
             return self._all_items[item_id]
         return None
@@ -309,6 +330,23 @@ class ItemManager:
         flag1 = (source_id is None) or (source_id in self._indices)
         flag2 = (target_id is None) or (target_id in self._indices)
         return flag1 and flag2
+
+    def get_lane_targets(self, lane_idx: int):
+        lane = self.get_lane(lane_idx)
+        env_id = lane.coverer_id if lane else None
+        env = self.get_by_id(env_id) if env_id else None
+
+        zombies_id = lane.get_fighters(Faction.ZOMBIE) if lane else []
+        plants_id = lane.get_fighters(Faction.PLANT) if lane else []
+
+        zombies = [self.get_by_id(z_id) for z_id in zombies_id]
+        plants = [self.get_by_id(p_id) for p_id in plants_id]
+
+        return {
+            "env": env,
+            "zombies": zombies,
+            "plants": plants,
+        }
 
 
 if __name__ == "__main__":

@@ -46,6 +46,18 @@ class Fighter(Target):
         self.on_pos.vacate()
         return self.proto_card
 
+    @property
+    def strength(self) -> int:
+        return self.state.CURRENT_STRENGTH
+
+    @property
+    def health(self) -> int:
+        return self.state.CURRENT_HEALTH
+
+    @property
+    def cost(self) -> int:
+        return self.state.CURRENT_COST
+
 
 class Env(Target):
     def __init__(self, proto_card: "Card", **kwargs):
@@ -60,3 +72,7 @@ class Env(Target):
         if self.on_lane.coverer_id == self.id:
             self.on_lane.uncover()
         return self.proto_card
+
+    @property
+    def cost(self) -> int:
+        return self.proto_card.config.cost

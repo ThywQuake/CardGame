@@ -59,6 +59,12 @@ class Lane(Item):
             case _:
                 return self.pos
 
+    def get_fighters(self, faction: Faction) -> list[str]:
+        poses = self.get_poses(faction)
+        return [
+            p.occupier_id for p in poses if p.occupied and p.occupier_id is not None
+        ]
+
     def get_vacant_pos(self, faction: Faction) -> Pos | None:
         poses = self.get_poses(faction)
         for p in poses:

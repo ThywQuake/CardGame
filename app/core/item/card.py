@@ -12,9 +12,7 @@ class Card(Item):
         super().__init__(**kwargs)
         self.type = "Card"
 
-        for key, value in card_config.__dict__.items():
-            if value is not None:
-                setattr(self, key, value)
+        self.config: CardConfig = card_config
 
         self.abilities: dict[str, Listener] = {}
 
