@@ -11,8 +11,13 @@ class Card(Item):
     def __init__(self, card_config: CardConfig, **kwargs):
         super().__init__(**kwargs)
         self.type = "Card"
+        self.subtype = "Card"
 
         self.config: CardConfig = card_config
+        self.name = card_config.name
+        self.faction = card_config.faction
+        self.cost = card_config.cost
+        self.art_path = card_config.art_path
 
         self.abilities: dict[str, Listener] = {}
 

@@ -157,6 +157,20 @@ class ItemManager:
             return button
         else:
             raise TypeError("Item with end_phase_button ID is not an EndPhaseButton.")
+        
+    def __getitem__(self, *range: Range) -> List[Item]:
+        """
+        Get all items in the specified range.
+        """
+        items: List[Item] = []
+        for r in range:
+            item_ids = self._indices[r]
+            for item_id in item_ids:
+                item = self.get_by_id(item_id)
+                if item is not None:
+                    items.append(item)
+        return items
+        
 
     def set_up_board(self):
         """
@@ -217,19 +231,24 @@ class ItemManager:
             if func(self._all_items[item_id])  # type: ignore
         ]  # type: ignore
 
-    def activate(self, items: List[Item], faction: Faction):
+    def activate(self, items: List[Items], faction: Faction):
         """
         Activate a List of items for a specific faction.
         """
         for item in items:
             item.activate(faction)
 
-    def deactivate(self, items: List[Item], faction: Faction | None = None):
+    def deactivate(self, items: List[Items], faction: Faction | None = None):
         """
         Deactivate a List of items for a specific faction or all factions.
         """
         for item in items:
             item.deactivate(faction)
+            
+    def _activate_end_phase_button(self, faction: Faction):
+        """Activate the end phase button for the specified faction."""
+        self.end_phase_button.activate(faction)
+        self.end_phase_button.deactivate(faction.opponent)
 
     def remove_item(self, item_id: str):
         """

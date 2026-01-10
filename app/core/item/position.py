@@ -16,15 +16,16 @@ class Pos(Item):
         self.index: int = index
         self.faction: Faction = faction
 
-        self.occupied: bool = False
         self.occupier_id: str | None = None
 
+    @property
+    def occupied(self) -> bool:
+        return self.occupier_id is not None
+
     def occupy_by(self, item_id: str):
-        self.occupied = True
         self.occupier_id = item_id
 
     def vacate(self):
-        self.occupied = False
         self.occupier_id = None
 
 

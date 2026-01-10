@@ -9,4 +9,5 @@ class Player:
         self.id = str(uuid4())
         self.faction = faction
         self.name = name
-        # Can be extended here: hero_id, deck_id, etc.
+
+        self.energy: int = 0  # Initialize player energy

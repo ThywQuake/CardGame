@@ -3,8 +3,14 @@ from app.core.base import Faction, GamePhase
 from app.core.item.item_manager import ItemManager
 from app.core.event.event_manager import EventManager
 from app.core.action.action_manager import ActionManager
-from app.core.event.events import EndPhaseEvent  # Assuming EndPhaseEvent exists
-# from app.core.event.game_events import TurnStartEvent, CombatStartEvent # Consider adding these events
+from app.core.event.events import (
+    ZombiePhaseStartingEvent,
+    ZombiePhaseEndingEvent,
+    PlantPhaseStartingEvent,
+    PlantPhaseEndingEvent,
+    ZombieTrickPhaseStartingEvent,
+    ZombieTrickPhaseEndingEvent,
+)
 
 from app.core.engine.combat import Combat
 
@@ -135,21 +141,17 @@ class Game:
                 self.event_manager.event_queue.put(event)
 
     # --- Private helper methods (Logic Implementation) ---
-    def _activate_end_phase_button(self, faction: Faction):
-        """Activate the end phase button for the specified faction."""
-        self.item_manager.end_phase_button.activate(faction)
-        self.item_manager.end_phase_button.deactivate(faction.opponent)
 
     def _on_phase_start(self, phase: GamePhase):
         """Hook logic executed when a phase starts."""
 
         # 1. Activate/Freeze operation permissions for the corresponding faction
         if phase == GamePhase.ZOMBIE_PHASE:
-            self._activate_end_phase_button(Faction.ZOMBIE)
+            self.run_events([ZombiePhaseStartingEvent()])
         elif phase == GamePhase.PLANT_PHASE:
-            self._activate_end_phase_button(Faction.PLANT)
+            self.run_events([PlantPhaseStartingEvent()])
         elif phase == GamePhase.ZOMBIE_TRICK_PHASE:
-            self._activate_end_phase_button(Faction.ZOMBIE)
+            self.run_events([ZombieTrickPhaseStartingEvent()])
         else:
             # Combat or resolution phases, disable all buttons
             self.item_manager.end_phase_button.deactivate()
